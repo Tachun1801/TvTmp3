@@ -1,13 +1,13 @@
-package com.tvt.tvtmp3;
+package com.tvtmp3.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class Tvtmp3Application {
+public class BackendApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(Tvtmp3Application.class, args);
+		SpringApplication.run(BackendApplication.class, args);
 	}
 
 }
