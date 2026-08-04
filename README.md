@@ -52,6 +52,7 @@ TvTmp3 là web app nghe nhạc MP3. Frontend React + Vite gọi REST API tới S
 | **React Router** | Điều hướng | Client-side routing, chuyển trang không reload |
 | **Axios** | HTTP client | Gọi REST API gọn hơn fetch, tự động parse JSON, intercept request/response |
 | **Tailwind CSS** | CSS utility | Viết style ngay trong class, không cần file CSS riêng, build tự xóa CSS thừa |
+| **lucide-react** | Icon library | Cung cấp các icon đẹp, dễ dùng và có thể tùy chỉnh |
 | **ESLint** | Linter | Bắt lỗi JS/JSX, thống nhất coding style — có sẵn khi scaffold Vite, không cần cài thêm |
 
 ## Cài đặt & Chạy
@@ -90,6 +91,7 @@ cd frontend
 npm install
 npm install react-router-dom axios
 npm install -D tailwindcss @tailwindcss/vite
+npm install lucide-react
 
 # Chạy dev server
 npm run dev
