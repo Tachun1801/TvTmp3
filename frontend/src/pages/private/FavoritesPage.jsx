@@ -1,1 +1,3 @@
-// FavoritesPage.jsx
+export default function FavoritesPage() {
+  return null;
+}

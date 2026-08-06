@@ -1,1 +1,3 @@
-// GenresPage.jsx
+export default function GenresPage() {
+  return null;
+}

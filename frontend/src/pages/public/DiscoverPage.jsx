@@ -1,1 +1,3 @@
-// DiscoverPage.jsx
+export default function DiscoverPage() {
+  return null;
+}

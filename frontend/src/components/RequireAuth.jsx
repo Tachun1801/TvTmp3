@@ -16,10 +16,9 @@ export default function RequireAuth({ children }) {
         <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
           <LogIn size={32} className="text-white/30" />
         </div>
-        <h2 className="text-white text-2xl font-bold mb-2">Login Required</h2>
+        <h2 className="text-white text-2xl font-bold mb-2">Yêu cầu đăng nhập</h2>
         <p className="text-white/50 text-sm mb-8 leading-relaxed">
-          You need to log in to access this content. Sign in to your account to
-          view your favorites, profile, and more.
+          Bạn cần đăng nhập để truy cập nội dung này. Hãy đăng nhập vào tài khoản của bạn để xem danh sách yêu thích, hồ sơ và nhiều thông tin khác.
         </p>
         <div className="flex items-center justify-center gap-3">
           <button

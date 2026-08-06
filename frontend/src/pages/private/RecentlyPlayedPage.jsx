@@ -1,1 +1,3 @@
-// RecentlyPlayedPage.jsx
+export default function RecentlyPlayedPage() {
+  return null;
+}
