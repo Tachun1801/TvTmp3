@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from '@/layouts/Layout';
 import RequireAuth from '@/components/RequireAuth';
@@ -11,10 +11,41 @@ import UploadedPage from '@/pages/private/UploadedPage';
 import ChartsPage from '@/pages/public/ChartsPage';
 import GenresPage from '@/pages/public/GenresPage';
 import ProfilePage from '@/pages/private/ProfilePage';
-import { newReleases } from '@/mock/mockData';
+import { useSongs } from '@/hooks/useSongs';
+import { songService } from '@/services/songService';
+
+/**
+ * App — Root component
+ *
+ * === DATA FLOW (api → service → hook → component) ===
+ *
+ * useSongs(() => songService.getDiscover())
+ *   → songService.getDiscover()
+ *     → songApi.getAll()
+ *       → MOCK ? mockSongs : axios.get('/api/songs')
+ *
+ * Khi backend có API thật:
+ *   1. Vào @/api/songApi.js, set MOCK = false
+ *   2. Bỏ comment phần real API + import client
+ *   3. KHÔNG cần sửa App.jsx này
+ */
 
 function App() {
-  const [currentTrack, setCurrentTrack] = useState(newReleases[0]);
+  /*
+   * TODO API: Khi các page (Discover, Charts...) đã tự fetch data qua useSongs,
+   * có thể bỏ useSongs ở App và chỉ giữ currentTrack state.
+   * Hiện tại App cần fetch để có track đầu tiên cho MusicPlayer.
+   */
+  const { data: songs } = useSongs(() => songService.getDiscover());
+
+  const [currentTrack, setCurrentTrack] = useState(null);
+
+  // Set bài đầu tiên làm current track khi data load xong
+  useEffect(() => {
+    if (songs.length > 0 && !currentTrack) {
+      setCurrentTrack(songs[0]);
+    }
+  }, [songs, currentTrack]);
 
   const handlePlay = (track) => {
     setCurrentTrack(track);

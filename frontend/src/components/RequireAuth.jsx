@@ -1,10 +1,19 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { LogIn } from 'lucide-react';
+import { LogIn, Loader2 } from 'lucide-react';
 
 export default function RequireAuth({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
+
+  // Đang kiểm tra token (app vừa load) → hiển thị spinner
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 size={32} className="text-white/40 animate-spin" />
+      </div>
+    );
+  }
 
   if (isAuthenticated) {
     return children;

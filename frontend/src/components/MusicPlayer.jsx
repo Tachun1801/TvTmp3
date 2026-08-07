@@ -1,9 +1,26 @@
 import { useState, useRef, useEffect } from 'react';
 import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Volume2, ListMusic } from 'lucide-react';
 
+/**
+ * MusicPlayer — Thanh phát nhạc dưới cùng
+ *
+ * Nhận currentTrack (shape từ API/DB):
+ *   { id, title, duration (INT giây), fileUrl, imgUrl, artist, genres }
+ *
+ * TODO API: Khi backend trả fileUrl thật (.mp3):
+ *   - Thay fake progress interval bằng thẻ <audio>
+ *   - Dùng ref audio: <audio ref={audioRef} src={currentTrack.fileUrl} />
+ *   - Sync isPlaying → audioRef.current.play() / pause()
+ *   - Sync progress → audioRef.current.currentTime / duration
+ *   - Bỏ intervalRef + formatTime, dùng onTimeUpdate event của <audio>
+ */
+
 export default function MusicPlayer({ currentTrack, onQueueToggle }) {
+  // Guard: chưa có track thì không render gì
+  if (!currentTrack) return null;
+
   const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(32);
+  const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(70);
   const intervalRef = useRef(null);
 
@@ -18,13 +35,22 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isPlaying]);
 
-  const formatTime = (pct, duration) => {
-    const [m, s] = duration.split(':').map(Number);
-    const totalSec = m * 60 + s;
-    const elapsed = Math.floor((pct / 100) * totalSec);
-    const em = Math.floor(elapsed / 60);
-    const es = elapsed % 60;
-    return `${em}:${es.toString().padStart(2, '0')}`;
+  /**
+   * Convert progress (%) + total duration (INT giây) → "m:ss" hiển thị
+   * duration: số giây (INT), khớp với DB schema songs.duration
+   */
+  const formatTime = (pct, durationSec) => {
+    const elapsed = Math.floor((pct / 100) * durationSec);
+    const m = Math.floor(elapsed / 60);
+    const s = elapsed % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  /** Format duration INT giây → "m:ss" */
+  const formatDuration = (durationSec) => {
+    const m = Math.floor(durationSec / 60);
+    const s = durationSec % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -32,7 +58,7 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
       {/* Track info */}
       <div className="flex items-center gap-3 w-56 flex-shrink-0">
         <img
-          src={currentTrack.cover}
+          src={currentTrack.imgUrl}
           alt={currentTrack.title}
           className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
         />
@@ -90,7 +116,7 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
               style={{ left: `calc(${progress}% - 6px)` }}
             />
           </div>
-          <span className="text-white/40 text-xs w-8">{currentTrack.duration}</span>
+          <span className="text-white/40 text-xs w-8">{formatDuration(currentTrack.duration)}</span>
         </div>
       </div>
 
