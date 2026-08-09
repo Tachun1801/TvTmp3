@@ -65,7 +65,9 @@ function App() {
         {/* === PUBLIC: ai cũng vào được === */}
         <Route
           path="/discover"
-          element={<DiscoverPage currentTrack={currentTrack} onPlay={handlePlay} />}
+          element={
+            <DiscoverPage currentTrack={currentTrack} onPlay={handlePlay} />
+          }
         />
         <Route path="/charts" element={<ChartsPage onPlay={handlePlay} />} />
         <Route path="/genres" element={<GenresPage onPlay={handlePlay} />} />

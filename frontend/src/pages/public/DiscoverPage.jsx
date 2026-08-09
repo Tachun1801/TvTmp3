@@ -9,16 +9,18 @@ function formatDuration(seconds) {
 }
 
 export default function DiscoverPage({ currentTrack, onPlay }) {
-  const [sortMode, setSortMode] = useState('latest');
+  const [sortMode, setSortMode] = useState("latest");
   const fetchDiscoverSongs = useCallback(() => songService.getDiscover(), []);
 
   const { data: songs, loading, error } = useSongs(fetchDiscoverSongs);
 
   const sortedSongs = useMemo(() => {
-    if (sortMode === 'popular') {
+    if (sortMode === "popular") {
       return songs.slice().sort((a, b) => b.playCount - a.playCount);
     }
-    return songs.slice().sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    return songs
+      .slice()
+      .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
   }, [songs, sortMode]);
 
   const topCharts = useMemo(
@@ -67,21 +69,47 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
               Khám phá danh sách bài hát mới nhất, nghe thử và phát ngay chỉ với
               một cú click.
             </p>
+
+            <div className="mt-6 rounded-[2rem] border border-white/10 bg-gradient-to-r from-violet-500/10 via-white/5 to-cyan-500/10 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.32em] text-cyan-200/80">
+                    Gợi ý hôm nay
+                  </p>
+                  <h2 className="text-2xl font-semibold text-white mt-2">
+                    {topCharts[0]?.title ?? 'Khám phá giai điệu đang thịnh hành'}
+                  </h2>
+                  <p className="mt-2 max-w-xl text-white/70">
+                    {topCharts[0]
+                      ? 'Bài hát được nghe nhiều nhất hôm nay, được người dùng yêu thích.'
+                      : 'Cập nhật nhanh những ca khúc mới nhất cho mọi tâm trạng.'}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => onPlay?.(topCharts[0] || songs[0])}
+                  className="inline-flex items-center justify-center rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300"
+                >
+                  Phát ngay
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
-            {['latest', 'popular'].map((mode) => (
+            {["latest", "popular"].map((mode) => (
               <button
                 key={mode}
                 type="button"
                 onClick={() => setSortMode(mode)}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                   sortMode === mode
-                    ? 'bg-violet-500 text-black'
-                    : 'bg-white/10 text-white hover:bg-white/15'
+                    ? "bg-violet-500 text-black"
+                    : "bg-white/10 text-white hover:bg-white/15"
                 }`}
               >
-                {mode === 'latest' ? 'Latest' : 'Popular'}
+                {mode === "latest" ? "Latest" : "Popular"}
               </button>
             ))}
           </div>
@@ -93,29 +121,28 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
               key={song.id}
               className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.18)]"
             >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-2xl overflow-hidden">
-                    <img
-                      src={song.imgUrl}
-                      alt={song.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/50">Top {index + 1}</p>
-                    <h3 className="text-sm font-semibold text-white line-clamp-2">
-                      {song.title}
-                    </h3>
-                  </div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-2xl overflow-hidden">
+                  <img
+                    src={song.imgUrl}
+                    alt={song.title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <p className="text-xs text-white/50 mb-3">{song.artist}</p>
-                <div className="flex items-center justify-between text-xs text-white/60">
-                  <span>{song.genres?.slice(0, 2).join(", ")}</span>
-                  <span>{song.playCount.toLocaleString()} lượt nghe</span>
+                <div>
+                  <p className="text-xs text-white/50">Top {index + 1}</p>
+                  <h3 className="text-sm font-semibold text-white line-clamp-2">
+                    {song.title}
+                  </h3>
                 </div>
               </div>
-            ))}
-          </div>
+              <p className="text-xs text-white/50 mb-3">{song.artist}</p>
+              <div className="flex items-center justify-between text-xs text-white/60">
+                <span>{song.genres?.slice(0, 2).join(", ")}</span>
+                <span>{song.playCount.toLocaleString()} lượt nghe</span>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -148,11 +175,11 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
                 onClick={() => onPlay?.(song)}
                 className={`inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                   currentTrack?.id === song.id
-                    ? 'bg-cyan-400 text-black'
-                    : 'bg-violet-500 text-white hover:bg-violet-400'
+                    ? "bg-cyan-400 text-black"
+                    : "bg-violet-500 text-white hover:bg-violet-400"
                 }`}
               >
-                {currentTrack?.id === song.id ? 'Playing' : 'Play now'}
+                {currentTrack?.id === song.id ? "Playing" : "Play now"}
               </button>
             </div>
           </article>
