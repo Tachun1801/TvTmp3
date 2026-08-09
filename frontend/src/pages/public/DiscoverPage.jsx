@@ -151,9 +151,13 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
           {topCharts.map((song, index) => (
             <div
               key={song.id}
-              className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.18)]"
+              className="relative rounded-3xl border border-white/10 bg-white/5 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.18)]"
             >
-              <div className="flex items-center gap-3 mb-4">
+              <div className="absolute left-4 top-4 rounded-full bg-violet-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-100 shadow-lg shadow-black/20">
+                #{index + 1}
+              </div>
+
+              <div className="flex items-center gap-3 mb-4 pt-3">
                 <div className="w-12 h-12 rounded-2xl overflow-hidden">
                   <img
                     src={song.imgUrl}
@@ -172,6 +176,15 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
               <div className="flex items-center justify-between text-xs text-white/60">
                 <span>{song.genres?.slice(0, 2).join(", ")}</span>
                 <span>{song.playCount.toLocaleString()} lượt nghe</span>
+              </div>
+              <div className="mt-4 flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => onPlay?.(song)}
+                  className="inline-flex items-center justify-center rounded-full bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/20"
+                >
+                  Play
+                </button>
               </div>
             </div>
           ))}
