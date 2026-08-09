@@ -10,18 +10,31 @@ function formatDuration(seconds) {
 
 export default function DiscoverPage({ currentTrack, onPlay }) {
   const [sortMode, setSortMode] = useState("latest");
+  const [selectedGenre, setSelectedGenre] = useState("All");
   const fetchDiscoverSongs = useCallback(() => songService.getDiscover(), []);
 
   const { data: songs, loading, error } = useSongs(fetchDiscoverSongs);
 
-  const sortedSongs = useMemo(() => {
-    if (sortMode === "popular") {
-      return songs.slice().sort((a, b) => b.playCount - a.playCount);
+  const genres = useMemo(() => {
+    const uniqueGenres = new Set();
+    songs.forEach((song) => song.genres?.forEach((genre) => uniqueGenres.add(genre)));
+    return ["All", ...Array.from(uniqueGenres).sort()];
+  }, [songs]);
+
+  const filteredSongs = useMemo(() => {
+    if (selectedGenre === "All") {
+      return songs;
     }
-    return songs
-      .slice()
-      .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
-  }, [songs, sortMode]);
+    return songs.filter((song) => song.genres?.includes(selectedGenre));
+  }, [songs, selectedGenre]);
+
+  const sortedSongs = useMemo(() => {
+    const base = filteredSongs.slice();
+    if (sortMode === "popular") {
+      return base.sort((a, b) => b.playCount - a.playCount);
+    }
+    return base.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+  }, [filteredSongs, sortMode]);
 
   const topCharts = useMemo(
     () =>
@@ -88,7 +101,7 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
 
                 <button
                   type="button"
-                  onClick={() => onPlay?.(topCharts[0] || songs[0])}
+                  onClick={() => onPlay?.(topCharts[0] || sortedSongs[0] || songs[0])}
                   className="inline-flex items-center justify-center rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300"
                 >
                   Phát ngay
@@ -97,21 +110,40 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {["latest", "popular"].map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setSortMode(mode)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  sortMode === mode
-                    ? "bg-violet-500 text-black"
-                    : "bg-white/10 text-white hover:bg-white/15"
-                }`}
-              >
-                {mode === "latest" ? "Latest" : "Popular"}
-              </button>
-            ))}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              {genres.map((genre) => (
+                <button
+                  key={genre}
+                  type="button"
+                  onClick={() => setSelectedGenre(genre)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    selectedGenre === genre
+                      ? "bg-cyan-400 text-black"
+                      : "bg-white/10 text-white hover:bg-white/15"
+                  }`}
+                >
+                  {genre}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3">
+              {["latest", "popular"].map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setSortMode(mode)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    sortMode === mode
+                      ? "bg-violet-500 text-black"
+                      : "bg-white/10 text-white hover:bg-white/15"
+                  }`}
+                >
+                  {mode === "latest" ? "Latest" : "Popular"}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -147,7 +179,7 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
       </section>
 
       <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-        {songs.map((song) => (
+        {sortedSongs.map((song) => (
           <article
             key={song.id}
             className="group overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition hover:-translate-y-1 hover:border-violet-400/20"
