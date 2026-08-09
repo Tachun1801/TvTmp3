@@ -56,4 +56,13 @@ export const songService = {
   async getCharts(type) {
     return getCharts(type);
   },
+
+  /**
+   * Lấy danh sách bài hát theo thể loại.
+   * Gọi GET /api/v1/songs?genre=Pop
+   */
+  async getByGenre(genreName) {
+    const result = await getSongs({ genre: genreName });
+    return result.data;
+  },
 };
