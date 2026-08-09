@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useSongs } from "@/hooks/useSongs";
 import { songService } from "@/services/songService";
 
@@ -55,6 +55,9 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
       );
     });
   }, [searchQuery, sortedSongs]);
+
+  const [searchTriggered, setSearchTriggered] = useState(false);
+  const searchInputRef = useRef(null);
 
   const topCharts = useMemo(
     () =>
@@ -188,15 +191,27 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
             <div className="rounded-[2rem] border border-white/10 bg-slate-950/50 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
               <div className="relative mb-4">
                 <input
+                  ref={searchInputRef}
                   type="search"
                   value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
+                  onChange={(event) => {
+                    setSearchQuery(event.target.value);
+                    setSearchTriggered(false);
+                  }}
                   placeholder="Tìm bài hát, nghệ sĩ hoặc thể loại..."
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-sm text-white outline-none transition focus:border-cyan-300 focus:bg-white/10"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 pr-24 text-sm text-white outline-none transition focus:border-cyan-300 focus:bg-white/10"
                 />
-                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white/50">
-                  🔍
-                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // focus input and trigger showing results
+                    searchInputRef.current?.focus();
+                    setSearchTriggered(true);
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-cyan-400/10 px-3 py-2 text-sm font-semibold text-cyan-200 hover:bg-cyan-400/20 transition"
+                >
+                  Tìm
+                </button>
               </div>
               <div className="mb-4 flex flex-wrap gap-2">
                 {genres.map((genre) => (
@@ -339,30 +354,79 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {featuredGenres.map((genre) => (
-            <button
-              key={genre}
-              type="button"
-              onClick={() => setSelectedGenre(genre)}
-              className={`rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5 text-left transition hover:border-cyan-300 ${
-                selectedGenre === genre
-                  ? "border-cyan-400/70 bg-cyan-400/10"
-                  : ""
-              }`}
-            >
-              <p className="text-xs uppercase tracking-[0.3em] text-cyan-200/70">
-                Thể loại
-              </p>
-              <h3 className="mt-3 text-xl font-semibold text-white">{genre}</h3>
-              <p className="mt-3 text-sm text-white/60">
-                {
-                  filteredSongs.filter((song) => song.genres?.includes(genre))
-                    .length
-                }{" "}
-                bài hát
-              </p>
-            </button>
-          ))}
+          {searchQuery.trim() || searchTriggered ? (
+            searchedSongs.length === 0 ? (
+              <div className="col-span-full rounded-[1.75rem] border border-white/10 bg-white/5 p-8 text-center text-white/80">
+                <p className="text-lg font-semibold text-white">
+                  Không tìm thấy bài hát nào khớp.
+                </p>
+                <p className="mt-3 text-sm text-white/70">
+                  Thử thay đổi từ khóa hoặc bộ lọc.
+                </p>
+              </div>
+            ) : (
+              searchedSongs.map((song) => (
+                <article
+                  key={song.id}
+                  className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5 transition hover:border-cyan-300"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-14 w-14 overflow-hidden rounded-2xl bg-slate-800">
+                      <img
+                        src={song.imgUrl}
+                        alt={song.title}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white line-clamp-2">
+                        {song.title}
+                      </h3>
+                      <p className="text-sm text-white/60">{song.artist}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-center justify-between text-xs text-white/50">
+                    <span>{formatDuration(song.duration)}</span>
+                    <span>{song.playCount.toLocaleString()} lượt nghe</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onPlay?.(song)}
+                    className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-cyan-400 px-4 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300"
+                  >
+                    Phát bài hát
+                  </button>
+                </article>
+              ))
+            )
+          ) : (
+            featuredGenres.map((genre) => (
+              <button
+                key={genre}
+                type="button"
+                onClick={() => setSelectedGenre(genre)}
+                className={`rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5 text-left transition hover:border-cyan-300 ${
+                  selectedGenre === genre
+                    ? "border-cyan-400/70 bg-cyan-400/10"
+                    : ""
+                }`}
+              >
+                <p className="text-xs uppercase tracking-[0.3em] text-cyan-200/70">
+                  Thể loại
+                </p>
+                <h3 className="mt-3 text-xl font-semibold text-white">
+                  {genre}
+                </h3>
+                <p className="mt-3 text-sm text-white/60">
+                  {
+                    filteredSongs.filter((song) => song.genres?.includes(genre))
+                      .length
+                  }{" "}
+                  bài hát
+                </p>
+              </button>
+            ))
+          )}
         </div>
       </section>
 
