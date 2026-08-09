@@ -101,13 +101,13 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
               một cú click.
             </p>
 
-            <div className="mt-6 rounded-[2rem] border border-white/10 bg-gradient-to-r from-violet-500/10 via-white/5 to-cyan-500/10 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+            <div className="mt-6 rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.16),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(168,85,247,0.16),_transparent_30%),linear-gradient(90deg,_rgba(255,255,255,0.08),_rgba(255,255,255,0.02))] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.22)] backdrop-blur-xl">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.32em] text-cyan-200/80">
                     Gợi ý hôm nay
                   </p>
-                  <h2 className="text-2xl font-semibold text-white mt-2">
+                  <h2 className="text-3xl font-semibold text-white mt-2">
                     {topCharts[0]?.title ?? 'Khám phá giai điệu đang thịnh hành'}
                   </h2>
                   <p className="mt-2 max-w-xl text-white/70">
@@ -120,7 +120,7 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
                 <button
                   type="button"
                   onClick={() => onPlay?.(topCharts[0] || sortedSongs[0] || songs[0])}
-                  className="inline-flex items-center justify-center rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300"
+                  className="inline-flex items-center justify-center rounded-full bg-cyan-400 px-6 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300"
                 >
                   Phát ngay
                 </button>
@@ -173,6 +173,9 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
                 ))}
               </div>
             </div>
+            <div className="mt-3 text-sm text-white/60">
+              {searchedSongs.length} bài hát phù hợp với filter và tìm kiếm
+            </div>
           </div>
         </div>
 
@@ -180,13 +183,14 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
           {topCharts.map((song, index) => (
             <div
               key={song.id}
-              className="relative rounded-3xl border border-white/10 bg-white/5 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.18)]"
+              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition hover:-translate-y-1 hover:border-cyan-300"
             >
               <div className="absolute left-4 top-4 rounded-full bg-violet-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-100 shadow-lg shadow-black/20">
                 #{index + 1}
               </div>
+              <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-cyan-400/10 to-transparent opacity-80" />
 
-              <div className="flex items-center gap-3 mb-4 pt-3">
+              <div className="relative flex items-center gap-3 mb-4 pt-3">
                 <div className="w-12 h-12 rounded-2xl overflow-hidden">
                   <img
                     src={song.imgUrl}
