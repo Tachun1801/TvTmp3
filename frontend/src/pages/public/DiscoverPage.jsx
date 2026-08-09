@@ -65,6 +65,30 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
     [sortedSongs],
   );
 
+  const featuredGenres = useMemo(() => {
+    const countByGenre = new Map();
+    songs.forEach((song) =>
+      song.genres?.forEach((genre) => {
+        countByGenre.set(genre, (countByGenre.get(genre) ?? 0) + 1);
+      }),
+    );
+    return Array.from(countByGenre.entries())
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 4)
+      .map(([genre]) => genre);
+  }, [songs]);
+
+  const isRecentlyAdded = (song) => {
+    const uploadedAt = new Date(song.uploadedAt);
+    const days = (Date.now() - uploadedAt.getTime()) / (1000 * 60 * 60 * 24);
+    return days <= 7;
+  };
+
+  const recentSongs = useMemo(
+    () => sortedSongs.filter(isRecentlyAdded).slice(0, 4),
+    [sortedSongs],
+  );
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center text-white/80">
@@ -113,7 +137,8 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
                   </div>
                   <div className="space-y-3">
                     <h2 className="text-4xl font-semibold tracking-tight">
-                      {topCharts[0]?.title ?? "Khám phá giai điệu đang thịnh hành"}
+                      {topCharts[0]?.title ??
+                        "Khám phá giai điệu đang thịnh hành"}
                     </h2>
                     <p className="max-w-xl text-white/70 leading-7">
                       {topCharts[0]
@@ -124,7 +149,9 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
                   <div className="flex flex-wrap items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => onPlay?.(topCharts[0] || sortedSongs[0] || songs[0])}
+                      onClick={() =>
+                        onPlay?.(topCharts[0] || sortedSongs[0] || songs[0])
+                      }
                       className="inline-flex items-center justify-center rounded-full bg-cyan-400 px-6 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300"
                     >
                       Phát ngay
@@ -136,13 +163,18 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
                 </div>
                 <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950/40 shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
                   <img
-                    src={topCharts[0]?.imgUrl ?? "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80"}
+                    src={
+                      topCharts[0]?.imgUrl ??
+                      "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80"
+                    }
                     alt={topCharts[0]?.title ?? "Featured song"}
                     className="h-full w-full object-cover brightness-90"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
                   <div className="absolute left-5 bottom-5 text-white">
-                    <p className="text-xs uppercase tracking-[0.3em] text-white/60">Top chart</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-white/60">
+                      Top chart
+                    </p>
                     <h3 className="mt-2 text-2xl font-semibold">
                       {topCharts[0]?.artist ?? "Featured Artist"}
                     </h3>
@@ -162,7 +194,9 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
                   placeholder="Tìm bài hát, nghệ sĩ hoặc thể loại..."
                   className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-sm text-white outline-none transition focus:border-cyan-300 focus:bg-white/10"
                 />
-                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white/50">🔍</span>
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white/50">
+                  🔍
+                </span>
               </div>
               <div className="mb-4 flex flex-wrap gap-2">
                 {genres.map((genre) => (
@@ -195,7 +229,7 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
                         : "bg-white/10 text-white hover:bg-white/15"
                     }`}
                   >
-                    {mode === "latest" ? "Latest" : "Popular"}
+                    {mode === "latest" ? "Mới nhất" : "Nổi bật"}
                   </button>
                 ))}
               </div>
@@ -205,10 +239,16 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
 
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-white/40">Top Charts</p>
-            <h2 className="text-2xl font-semibold text-white">Những ca khúc được nghe nhiều nhất</h2>
+            <p className="text-sm uppercase tracking-[0.3em] text-white/40">
+              Top Charts
+            </p>
+            <h2 className="text-2xl font-semibold text-white">
+              Những ca khúc được nghe nhiều nhất
+            </h2>
           </div>
-          <p className="text-sm text-white/60">Thứ tự theo lượt nghe và bộ lọc hiện tại</p>
+          <p className="text-sm text-white/60">
+            Thứ tự theo lượt nghe và bộ lọc hiện tại
+          </p>
         </div>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
@@ -230,7 +270,9 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                 </div>
                 <div className="flex-1 overflow-hidden">
-                  <p className="text-xs uppercase tracking-[0.24em] text-white/50">Top {index + 1}</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-white/50">
+                    Top {index + 1}
+                  </p>
                   <h3 className="mt-2 text-xl font-semibold text-white line-clamp-2">
                     {song.title}
                   </h3>
@@ -243,13 +285,15 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
                 </div>
               </div>
               <div className="mt-6 flex items-center justify-between">
-                <div className="text-[11px] uppercase tracking-[0.24em] text-white/40">Hot</div>
+                <div className="text-[11px] uppercase tracking-[0.24em] text-white/40">
+                  Hot
+                </div>
                 <button
                   type="button"
                   onClick={() => onPlay?.(song)}
                   className="inline-flex items-center justify-center rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-black transition hover:bg-cyan-300"
                 >
-                  Play
+                  Phát
                 </button>
               </div>
             </div>
@@ -257,44 +301,133 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
         </div>
       </section>
 
-      <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-        {searchedSongs.map((song) => (
-          <article
-            key={song.id}
-            className="group overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition hover:-translate-y-1 hover:border-violet-400/20"
+      <section className="mt-10 rounded-[2rem] border border-white/10 bg-slate-950/60 p-6 shadow-[0_30px_70px_rgba(0,0,0,0.18)]">
+        <div className="mb-6 rounded-3xl bg-white/5 p-4 text-sm text-white/70">
+          Đang hiển thị{" "}
+          <span className="font-semibold text-white">
+            {searchedSongs.length}
+          </span>{" "}
+          bài hát
+          {selectedGenre !== "All" && (
+            <span className="ml-2">
+              trong thể loại{" "}
+              <span className="font-semibold text-white">{selectedGenre}</span>
+            </span>
+          )}
+          {searchQuery && (
+            <span className="ml-2">
+              với từ khóa{" "}
+              <span className="font-semibold text-white">"{searchQuery}"</span>
+            </span>
+          )}
+        </div>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.3em] text-white/40">
+              Nổi bật
+            </p>
+            <h2 className="text-2xl font-semibold text-white">
+              Thể loại đang được nghe nhiều
+            </h2>
+          </div>
+          <button
+            type="button"
+            className="inline-flex items-center justify-center rounded-full bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
           >
-            <div className="relative overflow-hidden bg-slate-900">
-              <img
-                src={song.imgUrl}
-                alt={song.title}
-                className="h-56 w-full object-cover transition duration-300 group-hover:scale-105"
-              />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                <p className="text-sm text-white/80">{song.artist}</p>
-                <h2 className="text-xl font-semibold text-white line-clamp-2">
-                  {song.title}
-                </h2>
-              </div>
+            Xem tất cả thể loại
+          </button>
+        </div>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {featuredGenres.map((genre) => (
+            <button
+              key={genre}
+              type="button"
+              onClick={() => setSelectedGenre(genre)}
+              className={`rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5 text-left transition hover:border-cyan-300 ${
+                selectedGenre === genre
+                  ? "border-cyan-400/70 bg-cyan-400/10"
+                  : ""
+              }`}
+            >
+              <p className="text-xs uppercase tracking-[0.3em] text-cyan-200/70">
+                Thể loại
+              </p>
+              <h3 className="mt-3 text-xl font-semibold text-white">{genre}</h3>
+              <p className="mt-3 text-sm text-white/60">
+                {
+                  filteredSongs.filter((song) => song.genres?.includes(genre))
+                    .length
+                }{" "}
+                bài hát
+              </p>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-10 rounded-[2rem] border border-white/10 bg-slate-950/60 p-6 shadow-[0_30px_70px_rgba(0,0,0,0.18)]">
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.3em] text-white/40">
+              Mới cập nhật
+            </p>
+            <h2 className="text-2xl font-semibold text-white">
+              Bài hát vừa mới ra mắt
+            </h2>
+          </div>
+          <p className="text-sm text-white/60">
+            {recentSongs.length} bài hát mới trong 7 ngày gần nhất
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {recentSongs.length === 0 ? (
+            <div className="col-span-full rounded-[1.75rem] border border-white/10 bg-white/5 p-8 text-center text-white/80">
+              <p className="text-lg font-semibold text-white">
+                Chưa có bài hát mới trong 7 ngày gần nhất.
+              </p>
+              <p className="mt-3 text-sm text-white/70">
+                Hãy thử tìm kiếm lại hoặc chọn thể loại khác để cập nhật xu
+                hướng.
+              </p>
             </div>
-            <div className="space-y-4 p-5">
-              <div className="flex items-center justify-between text-sm text-white/60">
-                <span>{formatDuration(song.duration)}</span>
-                <span>{song.genres?.slice(0, 2).join(", ")}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => onPlay?.(song)}
-                className={`inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-                  currentTrack?.id === song.id
-                    ? "bg-cyan-400 text-black"
-                    : "bg-violet-500 text-white hover:bg-violet-400"
-                }`}
+          ) : (
+            recentSongs.map((song) => (
+              <article
+                key={song.id}
+                className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-5 transition hover:border-cyan-300"
               >
-                {currentTrack?.id === song.id ? "Playing" : "Play now"}
-              </button>
-            </div>
-          </article>
-        ))}
+                <div className="flex items-center gap-3">
+                  <div className="h-14 w-14 overflow-hidden rounded-2xl bg-slate-800">
+                    <img
+                      src={song.imgUrl}
+                      alt={song.title}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white line-clamp-2">
+                      {song.title}
+                    </h3>
+                    <p className="text-sm text-white/60">{song.artist}</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between text-xs text-white/50">
+                  <span>{formatDuration(song.duration)}</span>
+                  <span>{song.playCount.toLocaleString()} lượt nghe</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onPlay?.(song)}
+                  className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-cyan-400 px-4 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300"
+                >
+                  Phát bài hát
+                </button>
+              </article>
+            ))
+          )}
+        </div>
       </section>
     </main>
   );
