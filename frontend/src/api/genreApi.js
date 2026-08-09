@@ -28,7 +28,7 @@ function delay(ms) {
 
 // ============================================================
 // GET /api/v1/genres — Danh sách thể loại
-// Response: [{ id, name, description }]
+// Response: [{ genre_id, name, description, img_url }]
 // ============================================================
 
 export async function getGenres() {
