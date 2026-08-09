@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from '@/layouts/Layout';
 import RequireAuth from '@/components/RequireAuth';
@@ -36,7 +36,8 @@ function App() {
    * có thể bỏ useSongs ở App và chỉ giữ currentTrack state.
    * Hiện tại App cần fetch để có track đầu tiên cho MusicPlayer.
    */
-  const { data: songs } = useSongs(() => songService.getDiscover());
+  const fetchDiscoverSongs = useCallback(() => songService.getDiscover(), []);
+  const { data: songs } = useSongs(fetchDiscoverSongs);
 
   const [currentTrack, setCurrentTrack] = useState(null);
 
