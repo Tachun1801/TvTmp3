@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from "react";
 import { useSongs } from "@/hooks/useSongs";
 import { songService } from "@/services/songService";
 
@@ -9,16 +9,14 @@ function formatDuration(seconds) {
 }
 
 export default function DiscoverPage({ onPlay }) {
-  const fetchDiscoverSongs = useCallback(
-    () => songService.getDiscover(),
-    []
-  );
+  const fetchDiscoverSongs = useCallback(() => songService.getDiscover(), []);
 
-  const {
-    data: songs,
-    loading,
-    error,
-  } = useSongs(fetchDiscoverSongs);
+  const { data: songs, loading, error } = useSongs(fetchDiscoverSongs);
+
+  const topCharts = useMemo(
+    () => songs.slice().sort((a, b) => b.playCount - a.playCount).slice(0, 3),
+    [songs]
+  );
 
   if (loading) {
     return (
@@ -57,6 +55,26 @@ export default function DiscoverPage({ onPlay }) {
               Khám phá danh sách bài hát mới nhất, nghe thử và phát ngay chỉ với
               một cú click.
             </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {topCharts.map((song, index) => (
+              <div key={song.id} className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-2xl overflow-hidden">
+                    <img src={song.imgUrl} alt={song.title} className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/50">Top {index + 1}</p>
+                    <h3 className="text-sm font-semibold text-white line-clamp-2">{song.title}</h3>
+                  </div>
+                </div>
+                <p className="text-xs text-white/50 mb-3">{song.artist}</p>
+                <div className="flex items-center justify-between text-xs text-white/60">
+                  <span>{song.genres?.slice(0, 2).join(', ')}</span>
+                  <span>{song.playCount.toLocaleString()} lượt nghe</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
