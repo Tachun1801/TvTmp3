@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useSongs } from "@/hooks/useSongs";
 import { songService } from "@/services/songService";
 
@@ -8,14 +8,26 @@ function formatDuration(seconds) {
   return `${minutes}:${String(remainder).padStart(2, "0")}`;
 }
 
-export default function DiscoverPage({ onPlay }) {
+export default function DiscoverPage({ currentTrack, onPlay }) {
+  const [sortMode, setSortMode] = useState('latest');
   const fetchDiscoverSongs = useCallback(() => songService.getDiscover(), []);
 
   const { data: songs, loading, error } = useSongs(fetchDiscoverSongs);
 
+  const sortedSongs = useMemo(() => {
+    if (sortMode === 'popular') {
+      return songs.slice().sort((a, b) => b.playCount - a.playCount);
+    }
+    return songs.slice().sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+  }, [songs, sortMode]);
+
   const topCharts = useMemo(
-    () => songs.slice().sort((a, b) => b.playCount - a.playCount).slice(0, 3),
-    [songs]
+    () =>
+      sortedSongs
+        .slice()
+        .sort((a, b) => b.playCount - a.playCount)
+        .slice(0, 3),
+    [sortedSongs],
   );
 
   if (loading) {
@@ -45,7 +57,7 @@ export default function DiscoverPage({ onPlay }) {
   return (
     <main className="flex-1 overflow-y-auto px-6 py-8 text-white">
       <section className="mb-8">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.4em] text-white/40">
               Discover
@@ -56,21 +68,49 @@ export default function DiscoverPage({ onPlay }) {
               một cú click.
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {topCharts.map((song, index) => (
-              <div key={song.id} className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+
+          <div className="flex items-center gap-3">
+            {['latest', 'popular'].map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setSortMode(mode)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  sortMode === mode
+                    ? 'bg-violet-500 text-black'
+                    : 'bg-white/10 text-white hover:bg-white/15'
+                }`}
+              >
+                {mode === 'latest' ? 'Latest' : 'Popular'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {topCharts.map((song, index) => (
+            <div
+              key={song.id}
+              className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.18)]"
+            >
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-2xl overflow-hidden">
-                    <img src={song.imgUrl} alt={song.title} className="w-full h-full object-cover" />
+                    <img
+                      src={song.imgUrl}
+                      alt={song.title}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
                     <p className="text-xs text-white/50">Top {index + 1}</p>
-                    <h3 className="text-sm font-semibold text-white line-clamp-2">{song.title}</h3>
+                    <h3 className="text-sm font-semibold text-white line-clamp-2">
+                      {song.title}
+                    </h3>
                   </div>
                 </div>
                 <p className="text-xs text-white/50 mb-3">{song.artist}</p>
                 <div className="flex items-center justify-between text-xs text-white/60">
-                  <span>{song.genres?.slice(0, 2).join(', ')}</span>
+                  <span>{song.genres?.slice(0, 2).join(", ")}</span>
                   <span>{song.playCount.toLocaleString()} lượt nghe</span>
                 </div>
               </div>
@@ -106,9 +146,13 @@ export default function DiscoverPage({ onPlay }) {
               <button
                 type="button"
                 onClick={() => onPlay?.(song)}
-                className="inline-flex w-full items-center justify-center rounded-2xl bg-violet-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-400"
+                className={`inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                  currentTrack?.id === song.id
+                    ? 'bg-cyan-400 text-black'
+                    : 'bg-violet-500 text-white hover:bg-violet-400'
+                }`}
               >
-                Play now
+                {currentTrack?.id === song.id ? 'Playing' : 'Play now'}
               </button>
             </div>
           </article>
