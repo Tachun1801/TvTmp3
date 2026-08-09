@@ -10,7 +10,8 @@ CREATE TABLE users (
 CREATE TABLE genres (
     genre_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
-    description TEXT
+    description TEXT,
+    img_url VARCHAR(500)
 );
 
 CREATE TABLE songs (
