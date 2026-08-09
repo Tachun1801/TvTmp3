@@ -18,7 +18,9 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
 
   const genres = useMemo(() => {
     const uniqueGenres = new Set();
-    songs.forEach((song) => song.genres?.forEach((genre) => uniqueGenres.add(genre)));
+    songs.forEach((song) =>
+      song.genres?.forEach((genre) => uniqueGenres.add(genre)),
+    );
     return ["All", ...Array.from(uniqueGenres).sort()];
   }, [songs]);
 
@@ -89,74 +91,99 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
 
   return (
     <main className="flex-1 overflow-y-auto px-6 py-8 text-white">
-      <section className="mb-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <section className="mb-10">
+        <div className="grid gap-10 xl:grid-cols-[1.6fr_1fr]">
           <div>
             <p className="text-sm uppercase tracking-[0.4em] text-white/40">
               Discover
             </p>
-            <h1 className="text-4xl font-bold mt-2">Nhạc mới hot hôm nay</h1>
-            <p className="mt-3 max-w-2xl text-white/70">
+            <h1 className="text-5xl font-bold mt-2 leading-tight">
+              Nhạc mới hot hôm nay
+            </h1>
+            <p className="mt-3 max-w-2xl text-white/70 text-lg">
               Khám phá danh sách bài hát mới nhất, nghe thử và phát ngay chỉ với
               một cú click.
             </p>
 
-            <div className="mt-6 rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.16),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(168,85,247,0.16),_transparent_30%),linear-gradient(90deg,_rgba(255,255,255,0.08),_rgba(255,255,255,0.02))] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.22)] backdrop-blur-xl">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.32em] text-cyan-200/80">
+            <div className="mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.16),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(168,85,247,0.16),_transparent_30%),linear-gradient(90deg,_rgba(255,255,255,0.08),_rgba(255,255,255,0.02))] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+              <div className="grid gap-6 xl:grid-cols-[1.2fr_0.9fr] xl:items-center">
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-3 rounded-full bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.3em] text-cyan-200/80 shadow-sm shadow-cyan-500/10">
                     Gợi ý hôm nay
-                  </p>
-                  <h2 className="text-3xl font-semibold text-white mt-2">
-                    {topCharts[0]?.title ?? 'Khám phá giai điệu đang thịnh hành'}
-                  </h2>
-                  <p className="mt-2 max-w-xl text-white/70">
-                    {topCharts[0]
-                      ? 'Bài hát được nghe nhiều nhất hôm nay, được người dùng yêu thích.'
-                      : 'Cập nhật nhanh những ca khúc mới nhất cho mọi tâm trạng.'}
-                  </p>
+                  </div>
+                  <div className="space-y-3">
+                    <h2 className="text-4xl font-semibold tracking-tight">
+                      {topCharts[0]?.title ?? "Khám phá giai điệu đang thịnh hành"}
+                    </h2>
+                    <p className="max-w-xl text-white/70 leading-7">
+                      {topCharts[0]
+                        ? "Bài hát được nghe nhiều nhất hôm nay, được người dùng yêu thích."
+                        : "Cập nhật nhanh những ca khúc mới nhất cho mọi tâm trạng."}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => onPlay?.(topCharts[0] || sortedSongs[0] || songs[0])}
+                      className="inline-flex items-center justify-center rounded-full bg-cyan-400 px-6 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300"
+                    >
+                      Phát ngay
+                    </button>
+                    <span className="rounded-full bg-white/5 px-4 py-2 text-sm text-white/70">
+                      {sortedSongs.length} bài hát trong danh sách
+                    </span>
+                  </div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => onPlay?.(topCharts[0] || sortedSongs[0] || songs[0])}
-                  className="inline-flex items-center justify-center rounded-full bg-cyan-400 px-6 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300"
-                >
-                  Phát ngay
-                </button>
+                <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950/40 shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
+                  <img
+                    src={topCharts[0]?.imgUrl ?? "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80"}
+                    alt={topCharts[0]?.title ?? "Featured song"}
+                    className="h-full w-full object-cover brightness-90"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+                  <div className="absolute left-5 bottom-5 text-white">
+                    <p className="text-xs uppercase tracking-[0.3em] text-white/60">Top chart</p>
+                    <h3 className="mt-2 text-2xl font-semibold">
+                      {topCharts[0]?.artist ?? "Featured Artist"}
+                    </h3>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div className="flex flex-wrap items-center gap-2">
-              {genres.map((genre) => (
-                <button
-                  key={genre}
-                  type="button"
-                  onClick={() => setSelectedGenre(genre)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    selectedGenre === genre
-                      ? "bg-cyan-400 text-black"
-                      : "bg-white/10 text-white hover:bg-white/15"
-                  }`}
-                >
-                  {genre}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-              <div className="relative w-full sm:max-w-xs">
+          <aside className="space-y-6">
+            <div className="rounded-[2rem] border border-white/10 bg-slate-950/50 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+              <div className="relative mb-4">
                 <input
                   type="search"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder="Tìm bài hát, nghệ sĩ hoặc thể loại..."
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-300 focus:bg-white/10"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-sm text-white outline-none transition focus:border-cyan-300 focus:bg-white/10"
                 />
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white/50">🔍</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="mb-4 flex flex-wrap gap-2">
+                {genres.map((genre) => (
+                  <button
+                    key={genre}
+                    type="button"
+                    onClick={() => setSelectedGenre(genre)}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      selectedGenre === genre
+                        ? "bg-cyan-400 text-black"
+                        : "bg-white/10 text-white hover:bg-white/15"
+                    }`}
+                  >
+                    {genre}
+                  </button>
+                ))}
+              </div>
+              <div className="mb-4 text-sm text-white/60">
+                {searchedSongs.length} bài hát phù hợp với filter và tìm kiếm
+              </div>
+              <div className="flex flex-wrap gap-2">
                 {["latest", "popular"].map((mode) => (
                   <button
                     key={mode}
@@ -173,48 +200,54 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
                 ))}
               </div>
             </div>
-            <div className="mt-3 text-sm text-white/60">
-              {searchedSongs.length} bài hát phù hợp với filter và tìm kiếm
-            </div>
-          </div>
+          </aside>
         </div>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.3em] text-white/40">Top Charts</p>
+            <h2 className="text-2xl font-semibold text-white">Những ca khúc được nghe nhiều nhất</h2>
+          </div>
+          <p className="text-sm text-white/60">Thứ tự theo lượt nghe và bộ lọc hiện tại</p>
+        </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
           {topCharts.map((song, index) => (
             <div
               key={song.id}
-              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition hover:-translate-y-1 hover:border-cyan-300"
+              className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/80 p-5 shadow-[0_25px_70px_rgba(0,0,0,0.24)] transition hover:-translate-y-1 hover:border-cyan-300"
             >
-              <div className="absolute left-4 top-4 rounded-full bg-violet-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-100 shadow-lg shadow-black/20">
+              <div className="absolute left-5 top-5 rounded-full bg-cyan-400/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-100 shadow-sm shadow-cyan-500/10">
                 #{index + 1}
               </div>
-              <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-cyan-400/10 to-transparent opacity-80" />
-
-              <div className="relative flex items-center gap-3 mb-4 pt-3">
-                <div className="w-12 h-12 rounded-2xl overflow-hidden">
+              <div className="flex gap-4">
+                <div className="relative h-24 w-24 overflow-hidden rounded-[1.5rem] bg-slate-900">
                   <img
                     src={song.imgUrl}
                     alt={song.title}
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                 </div>
-                <div>
-                  <p className="text-xs text-white/50">Top {index + 1}</p>
-                  <h3 className="text-sm font-semibold text-white line-clamp-2">
+                <div className="flex-1 overflow-hidden">
+                  <p className="text-xs uppercase tracking-[0.24em] text-white/50">Top {index + 1}</p>
+                  <h3 className="mt-2 text-xl font-semibold text-white line-clamp-2">
                     {song.title}
                   </h3>
+                  <p className="mt-2 text-sm text-white/60">{song.artist}</p>
+                  <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-white/50">
+                    <span>{song.genres?.slice(0, 2).join(", ")}</span>
+                    <span>•</span>
+                    <span>{song.playCount.toLocaleString()} lượt nghe</span>
+                  </div>
                 </div>
               </div>
-              <p className="text-xs text-white/50 mb-3">{song.artist}</p>
-              <div className="flex items-center justify-between text-xs text-white/60">
-                <span>{song.genres?.slice(0, 2).join(", ")}</span>
-                <span>{song.playCount.toLocaleString()} lượt nghe</span>
-              </div>
-              <div className="mt-4 flex items-center justify-end">
+              <div className="mt-6 flex items-center justify-between">
+                <div className="text-[11px] uppercase tracking-[0.24em] text-white/40">Hot</div>
                 <button
                   type="button"
                   onClick={() => onPlay?.(song)}
-                  className="inline-flex items-center justify-center rounded-full bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/20"
+                  className="inline-flex items-center justify-center rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-black transition hover:bg-cyan-300"
                 >
                   Play
                 </button>
