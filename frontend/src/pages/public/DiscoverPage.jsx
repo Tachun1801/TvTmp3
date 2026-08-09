@@ -11,6 +11,7 @@ function formatDuration(seconds) {
 export default function DiscoverPage({ currentTrack, onPlay }) {
   const [sortMode, setSortMode] = useState("latest");
   const [selectedGenre, setSelectedGenre] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const fetchDiscoverSongs = useCallback(() => songService.getDiscover(), []);
 
   const { data: songs, loading, error } = useSongs(fetchDiscoverSongs);
@@ -35,6 +36,23 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
     }
     return base.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
   }, [filteredSongs, sortMode]);
+
+  const searchedSongs = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) {
+      return sortedSongs;
+    }
+    return sortedSongs.filter((song) => {
+      const title = song.title?.toLowerCase() ?? "";
+      const artist = song.artist?.toLowerCase() ?? "";
+      const genresText = song.genres?.join(" ").toLowerCase() ?? "";
+      return (
+        title.includes(query) ||
+        artist.includes(query) ||
+        genresText.includes(query)
+      );
+    });
+  }, [searchQuery, sortedSongs]);
 
   const topCharts = useMemo(
     () =>
@@ -110,7 +128,7 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
             <div className="flex flex-wrap items-center gap-2">
               {genres.map((genre) => (
                 <button
@@ -128,21 +146,32 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
               ))}
             </div>
 
-            <div className="flex items-center gap-3">
-              {["latest", "popular"].map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setSortMode(mode)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    sortMode === mode
-                      ? "bg-violet-500 text-black"
-                      : "bg-white/10 text-white hover:bg-white/15"
-                  }`}
-                >
-                  {mode === "latest" ? "Latest" : "Popular"}
-                </button>
-              ))}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+              <div className="relative w-full sm:max-w-xs">
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Tìm bài hát, nghệ sĩ hoặc thể loại..."
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-300 focus:bg-white/10"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                {["latest", "popular"].map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setSortMode(mode)}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      sortMode === mode
+                        ? "bg-violet-500 text-black"
+                        : "bg-white/10 text-white hover:bg-white/15"
+                    }`}
+                  >
+                    {mode === "latest" ? "Latest" : "Popular"}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -192,7 +221,7 @@ export default function DiscoverPage({ currentTrack, onPlay }) {
       </section>
 
       <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-        {sortedSongs.map((song) => (
+        {searchedSongs.map((song) => (
           <article
             key={song.id}
             className="group overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition hover:-translate-y-1 hover:border-violet-400/20"
