@@ -73,6 +73,7 @@ export const songService = {
    */
   async upload(formData) {
     return uploadSong(formData);
+  },
   /**
    * Lấy danh sách bài hát theo thể loại.
    * Gọi GET /api/v1/songs?genre=Pop
