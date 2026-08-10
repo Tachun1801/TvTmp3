@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Volume2, ListMusic } from 'lucide-react';
 
 /**
@@ -7,12 +7,8 @@ import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Volume2, ListMusic
  * Nhận currentTrack (shape từ API/DB):
  *   { id, title, duration (INT giây), fileUrl, imgUrl, artist, genres }
  *
- * TODO API: Khi backend trả fileUrl thật (.mp3):
- *   - Thay fake progress interval bằng thẻ <audio>
- *   - Dùng ref audio: <audio ref={audioRef} src={currentTrack.fileUrl} />
- *   - Sync isPlaying → audioRef.current.play() / pause()
- *   - Sync progress → audioRef.current.currentTime / duration
- *   - Bỏ intervalRef + formatTime, dùng onTimeUpdate event của <audio>
+ * Dùng thẻ <audio> thật để play nhạc.
+ * fileUrl là URL playable (mock: Vite-resolved MP3; real: CDN/S3 URL).
  */
 
 export default function MusicPlayer({ currentTrack, onQueueToggle }) {
@@ -22,39 +18,136 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(70);
-  const intervalRef = useRef(null);
+  const [duration, setDuration] = useState(currentTrack.duration || 0);
+  const [isDraggingProgress, setIsDraggingProgress] = useState(false);
+  const [isDraggingVolume, setIsDraggingVolume] = useState(false);
+  const audioRef = useRef(null);
+  const progressBarRef = useRef(null);
+  const volumeBarRef = useRef(null);
 
+  /** Lấy % (0-100) từ vị trí chuột/touch trên thanh */
+  const getPercent = useCallback((e, ref) => {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return 0;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    return Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+  }, []);
+
+  // Sync isPlaying → audio.play() / audio.pause()
   useEffect(() => {
+    if (!audioRef.current) return;
     if (isPlaying) {
-      intervalRef.current = setInterval(() => {
-        setProgress((p) => (p >= 100 ? 0 : p + 0.1));
-      }, 300);
+      audioRef.current.play().catch(() => setIsPlaying(false));
     } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      audioRef.current.pause();
     }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isPlaying]);
 
-  /**
-   * Convert progress (%) + total duration (INT giây) → "m:ss" hiển thị
-   * duration: số giây (INT), khớp với DB schema songs.duration
-   */
-  const formatTime = (pct, durationSec) => {
-    const elapsed = Math.floor((pct / 100) * durationSec);
+  // Sync volume → audio.volume
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume / 100;
+    }
+  }, [volume]);
+
+  // Đổi track → load src mới + auto-play
+  useEffect(() => {
+    if (audioRef.current && currentTrack?.fileUrl) {
+      audioRef.current.src = currentTrack.fileUrl;
+      audioRef.current.load();
+      setProgress(0);
+      setIsPlaying(true);
+    }
+  }, [currentTrack?.id]);
+
+  // Drag progress bar → seek audio
+  useEffect(() => {
+    if (!isDraggingProgress) return;
+    const onMove = (e) => {
+      e.preventDefault();
+      const pct = getPercent(e, progressBarRef);
+      setProgress(pct);
+      if (audioRef.current) {
+        audioRef.current.currentTime = (pct / 100) * audioRef.current.duration;
+      }
+    };
+    const onUp = () => setIsDraggingProgress(false);
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onUp);
+    return () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onUp);
+    };
+  }, [isDraggingProgress, getPercent]);
+
+  // Drag volume bar
+  useEffect(() => {
+    if (!isDraggingVolume) return;
+    const onMove = (e) => {
+      e.preventDefault();
+      setVolume(Math.round(getPercent(e, volumeBarRef)));
+    };
+    const onUp = () => setIsDraggingVolume(false);
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onUp);
+    return () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onUp);
+    };
+  }, [isDraggingVolume, getPercent]);
+
+  const handleTimeUpdate = useCallback(() => {
+    const a = audioRef.current;
+    if (a && a.duration) {
+      setProgress((a.currentTime / a.duration) * 100);
+    }
+  }, []);
+
+  const handleLoadedMetadata = useCallback(() => {
+    const a = audioRef.current;
+    if (a?.duration) {
+      setDuration(a.duration);
+    }
+  }, []);
+
+  const handleEnded = useCallback(() => {
+    setIsPlaying(false);
+    setProgress(0);
+  }, []);
+
+  /** Convert progress (%) → "m:ss" */
+  const formatTime = (pct) => {
+    const elapsed = Math.floor((pct / 100) * duration);
     const m = Math.floor(elapsed / 60);
     const s = elapsed % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  /** Format duration INT giây → "m:ss" */
-  const formatDuration = (durationSec) => {
-    const m = Math.floor(durationSec / 60);
-    const s = durationSec % 60;
+  /** Format duration giây → "m:ss" */
+  const formatDuration = (dur) => {
+    const m = Math.floor(dur / 60);
+    const s = Math.floor(dur % 60);
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
   return (
-    <div className="h-20 bg-[#0d0718]/95 backdrop-blur-xl border-t border-white/10 flex items-center px-6 gap-6 flex-shrink-0">
+    <>
+      <audio
+        ref={audioRef}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onEnded={handleEnded}
+        preload="auto"
+      />
+      <div className="h-20 bg-[#0d0718]/95 backdrop-blur-xl border-t border-white/10 flex items-center px-6 gap-6 flex-shrink-0">
       {/* Track info */}
       <div className="flex items-center gap-3 w-56 flex-shrink-0">
         <img
@@ -98,17 +191,30 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
         {/* Progress bar */}
         <div className="w-full max-w-xl flex items-center gap-3">
           <span className="text-white/40 text-xs w-8 text-right">
-            {formatTime(progress, currentTrack.duration)}
+            {formatTime(progress)}
           </span>
           <div
+            ref={progressBarRef}
             className="flex-1 h-1 bg-white/20 rounded-full cursor-pointer relative group"
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              setProgress(((e.clientX - rect.left) / rect.width) * 100);
+            onMouseDown={(e) => {
+              const pct = getPercent(e, progressBarRef);
+              setProgress(pct);
+              setIsDraggingProgress(true);
+              if (audioRef.current) {
+                audioRef.current.currentTime = (pct / 100) * audioRef.current.duration;
+              }
+            }}
+            onTouchStart={(e) => {
+              const pct = getPercent(e, progressBarRef);
+              setProgress(pct);
+              setIsDraggingProgress(true);
+              if (audioRef.current) {
+                audioRef.current.currentTime = (pct / 100) * audioRef.current.duration;
+              }
             }}
           >
             <div
-              className="absolute left-0 top-0 h-full bg-cyan-400 rounded-full transition-all"
+              className={`absolute left-0 top-0 h-full bg-cyan-400 rounded-full ${isDraggingProgress ? '' : 'transition-all'}`}
               style={{ width: `${progress}%` }}
             />
             <div
@@ -116,7 +222,7 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
               style={{ left: `calc(${progress}% - 6px)` }}
             />
           </div>
-          <span className="text-white/40 text-xs w-8">{formatDuration(currentTrack.duration)}</span>
+          <span className="text-white/40 text-xs w-8">{formatDuration(duration)}</span>
         </div>
       </div>
 
@@ -124,14 +230,19 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
       <div className="flex items-center gap-3 w-48 justify-end flex-shrink-0">
         <Volume2 size={16} className="text-white/50" />
         <div
+          ref={volumeBarRef}
           className="w-24 h-1 bg-white/20 rounded-full cursor-pointer relative group"
-          onClick={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            setVolume(Math.round(((e.clientX - rect.left) / rect.width) * 100));
+          onMouseDown={(e) => {
+            setVolume(Math.round(getPercent(e, volumeBarRef)));
+            setIsDraggingVolume(true);
+          }}
+          onTouchStart={(e) => {
+            setVolume(Math.round(getPercent(e, volumeBarRef)));
+            setIsDraggingVolume(true);
           }}
         >
           <div
-            className="absolute left-0 top-0 h-full bg-white/70 rounded-full"
+            className={`absolute left-0 top-0 h-full bg-white/70 rounded-full ${isDraggingVolume ? '' : 'transition-all'}`}
             style={{ width: `${volume}%` }}
           />
           <div
@@ -144,5 +255,6 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
         </button>
       </div>
     </div>
+    </>
   );
 }
