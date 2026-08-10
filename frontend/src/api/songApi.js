@@ -13,6 +13,7 @@
 // Mock (xóa hết phần này khi bật real API)
 // ============================================================
 import { mockSongs } from '@/mock/songs';
+import mockMp3 from '@/mock/mp3/mock.mp3';
 const MOCK = true;
 
 function delay(ms) {
@@ -88,7 +89,7 @@ export async function getSongById(id) {
 export function getStreamUrl(id) {
   // --- Mock ---
   if (MOCK) {
-    return `/uploads/song-${id}.mp3`; // fallback tĩnh
+    return mockMp3; // fallback tĩnh
   }
   // --- End mock ---
 
