@@ -16,13 +16,21 @@ import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Volume2, ListMusic
  */
 
 export default function MusicPlayer({ currentTrack, onQueueToggle }) {
-  // Guard: chưa có track thì không render gì
-  if (!currentTrack) return null;
-
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(70);
   const intervalRef = useRef(null);
+
+  useEffect(() => {
+    if (!currentTrack) {
+      setIsPlaying(false);
+      setProgress(0);
+      return;
+    }
+
+    setIsPlaying(true);
+    setProgress(0);
+  }, [currentTrack]);
 
   useEffect(() => {
     if (isPlaying) {
@@ -52,6 +60,8 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
     const s = durationSec % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
+
+  if (!currentTrack) return null;
 
   return (
     <div className="h-20 bg-[#0d0718]/95 backdrop-blur-xl border-t border-white/10 flex items-center px-6 gap-6 flex-shrink-0">
