@@ -124,7 +124,7 @@ export default function RecentlyPlayedPage({ onPlay }) {
           Nghe gần đây
         </h1>
         <p className="mt-3 max-w-2xl text-lg text-white/70">
-          Tiếp tục từ bài vừa nghe hoặc quay lại những ca khúc bạn đã phát.
+          Xem lại các bài hát bạn đã nghe và phát lại bất cứ lúc nào.
         </p>
       </section>
 
@@ -140,7 +140,7 @@ export default function RecentlyPlayedPage({ onPlay }) {
             )}
             <div className="min-w-0">
               <p className="text-xs uppercase tracking-[0.3em] text-cyan-200/80">
-                Nghe tiếp
+                Bài nghe gần nhất
               </p>
               <h2 className="mt-2 truncate text-2xl font-semibold">
                 {latestSong?.title ?? 'Bài gần nhất'}
@@ -160,7 +160,7 @@ export default function RecentlyPlayedPage({ onPlay }) {
               className="inline-flex items-center gap-2 rounded-full bg-cyan-400 px-6 py-3 text-sm font-semibold text-black transition hover:bg-cyan-300"
             >
               <Play size={16} className="fill-black" />
-              Phát tiếp
+              Phát lại
             </button>
             <button
               type="button"
