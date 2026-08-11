@@ -7,25 +7,29 @@
 
 import { mockSongs } from './songs';
 
-// Mỗi user có 1 mảng history entries
+function hoursAgo(hours) {
+  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+}
+
+// Mỗi user có 1 mảng history entries (playedAt tương đối để demo UI)
 const historyMap = new Map([
   [
     1,
     [
-      { id: 101, songId: 8, playedAt: '2024-09-20T08:00:00Z' },
-      { id: 102, songId: 14, playedAt: '2024-09-20T07:50:00Z' },
-      { id: 103, songId: 20, playedAt: '2024-09-20T07:30:00Z' },
-      { id: 104, songId: 4, playedAt: '2024-09-19T22:00:00Z' },
-      { id: 105, songId: 11, playedAt: '2024-09-19T21:00:00Z' },
-      { id: 106, songId: 7, playedAt: '2024-09-19T18:00:00Z' },
-      { id: 107, songId: 1, playedAt: '2024-09-19T12:00:00Z' },
+      { id: 101, songId: 8, playedAt: hoursAgo(1) },
+      { id: 102, songId: 14, playedAt: hoursAgo(3) },
+      { id: 103, songId: 20, playedAt: hoursAgo(5) },
+      { id: 104, songId: 4, playedAt: hoursAgo(28) },
+      { id: 105, songId: 11, playedAt: hoursAgo(30) },
+      { id: 106, songId: 7, playedAt: hoursAgo(48) },
+      { id: 107, songId: 1, playedAt: hoursAgo(120) },
     ],
   ],
   [
     2,
     [
-      { id: 201, songId: 5, playedAt: '2024-09-20T09:00:00Z' },
-      { id: 202, songId: 11, playedAt: '2024-09-20T08:00:00Z' },
+      { id: 201, songId: 5, playedAt: hoursAgo(2) },
+      { id: 202, songId: 11, playedAt: hoursAgo(6) },
     ],
   ],
 ]);

@@ -30,7 +30,7 @@ const MOCK_USER_ID = 1;
 // ============================================================
 
 // ============================================================
-// GET /api/v1/history — Lịch sử nghe (cần token)
+// GET /api/v1/history — Lịch sử nghe — Vinh (RecentlyPlayedPage)
 // Response: [{ id, song: {...}, playedAt }]
 // ============================================================
 
@@ -48,7 +48,7 @@ export async function getHistory() {
 }
 
 // ============================================================
-// POST /api/v1/history — Ghi nhận lượt nghe (cần token)
+// POST /api/v1/history — Ghi nhận lượt nghe — Vinh (RecentlyPlayedPage, khi phát nhạc)
 // Body: { songId }
 // Response: { success: true }
 // ============================================================
