@@ -18,7 +18,7 @@ import { getMySongs } from '@/api/mySongsApi';
 export const songService = {
   /**
    * Lấy danh sách bài hát cho Discover.
-   * Gọi GET /api/v1/songs?sort=latest
+   * Gọi GET /api/v1/songs?sort=latest — Vinh (DiscoverPage)
    */
   async getDiscover() {
     const result = await getSongs({ sort: 'latest' });
@@ -28,7 +28,7 @@ export const songService = {
 
   /**
    * Lấy danh sách nghe gần đây.
-   * Gọi GET /api/v1/history (cần token — mock trả về user 1)
+   * Gọi GET /api/v1/history (cần token) — Vinh (RecentlyPlayedPage)
    */
   async getRecentlyPlayed() {
     return getHistory();
