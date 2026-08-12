@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "song_genres")
-class SongGenre {
+public class SongGenre {
 
     @EmbeddedId
     private SongGenreId id;
