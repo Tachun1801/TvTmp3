@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.io.Serializable;
 
 @Embeddable
-class FavoriteSongId implements Serializable {
+public class FavoriteSongId implements Serializable {
     private Long userId;
     private Long songId;
 
