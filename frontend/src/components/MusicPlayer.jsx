@@ -42,17 +42,12 @@ import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Volume2, ListMusic
 
 export default function MusicPlayer({ currentTrack, onQueueToggle }) {
   // =========================================================================
-  // Guard: chưa có track nào được chọn → không render gì
-  // =========================================================================
-  if (!currentTrack) return null;
-
-  // =========================================================================
   // State
   // =========================================================================
   const [isPlaying, setIsPlaying] = useState(false);           // play/pause
   const [progress, setProgress] = useState(0);                  // 0–100 (%)
   const [volume, setVolume] = useState(70);                     // 0–100 (%)
-  const [duration, setDuration] = useState(currentTrack.duration || 0); // giây — khởi tạo từ DB, ghi đè bởi audio metadata
+  const [duration, setDuration] = useState(currentTrack?.duration || 0); // giây — khởi tạo từ DB, ghi đè bởi audio metadata
   const [isDraggingProgress, setIsDraggingProgress] = useState(false);  // đang kéo thanh progress?
   const [isDraggingVolume, setIsDraggingVolume] = useState(false);      // đang kéo thanh volume?
 
@@ -79,6 +74,19 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
   // Effect: sync trạng thái isPlaying → thẻ <audio>
   // .play() trả về Promise — nếu browser chặn autoplay thì catch & reset state
   // =========================================================================
+  useEffect(() => {
+    if (!currentTrack) {
+      setIsPlaying(false);
+      setProgress(0);
+      setDuration(0);
+      return;
+    }
+
+    setDuration(currentTrack.duration || 0);
+    setIsPlaying(true);
+    setProgress(0);
+  }, [currentTrack]);
+  
   useEffect(() => {
     if (!audioRef.current) return;
     if (isPlaying) {
@@ -222,6 +230,7 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  if (!currentTrack) return null;
   // =========================================================================
   // Render
   // =========================================================================
