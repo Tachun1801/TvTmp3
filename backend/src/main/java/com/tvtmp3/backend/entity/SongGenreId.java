@@ -6,7 +6,7 @@ import java.util.Objects;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
-class SongGenreId implements Serializable {
+public class SongGenreId implements Serializable {
     private Long songId;
     private Long genreId;
     
