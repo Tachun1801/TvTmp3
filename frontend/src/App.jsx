@@ -10,6 +10,7 @@ import FavoritesPage from "@/pages/private/FavoritesPage";
 import UploadedPage from "@/pages/private/UploadedPage";
 import ChartsPage from "@/pages/public/ChartsPage";
 import GenresPage from "@/pages/public/GenresPage";
+import GenreDetailPage from "@/pages/public/GenreDetailPage";
 import ProfilePage from "@/pages/private/ProfilePage";
 import { useSongs } from "@/hooks/useSongs";
 import { songService } from "@/services/songService";
@@ -71,6 +72,11 @@ function App() {
         />
         <Route path="/charts" element={<ChartsPage onPlay={handlePlay} />} />
         <Route path="/genres" element={<GenresPage onPlay={handlePlay} />} />
+        <Route path="/genres" element={<GenresPage onPlay={handlePlay} />} />
+        <Route
+          path="/genres/:genreName"
+          element={<GenreDetailPage onPlay={handlePlay} />}
+        />
 
         {/* === PROTECTED: hiển thị nút login nếu chưa đăng nhập === */}
         <Route

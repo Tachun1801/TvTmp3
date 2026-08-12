@@ -11,8 +11,9 @@
  * - Hook + Component chỉ cần gọi service mới, không cần sửa gì khác
  */
 
-import { getSongs, getSongById, searchSongs, getCharts } from '@/api/songApi';
+import { getSongs, getSongById, searchSongs, getCharts, uploadSong } from '@/api/songApi';
 import { getHistory } from '@/api/historyApi';
+import { getMySongs } from '@/api/mySongsApi';
 
 export const songService = {
   /**
@@ -55,5 +56,30 @@ export const songService = {
    */
   async getCharts(type) {
     return getCharts(type);
+  },
+
+  /**
+   * Lấy danh sách bài hát user đã upload.
+   * Gọi GET /api/v1/me/songs (cần token — mock trả về userId 1)
+   */
+  async getMyUploads() {
+    return getMySongs();
+  },
+
+  /**
+   * Upload bài hát mới.
+   * Gọi POST /api/v1/songs (multipart/form-data)
+   * Body: FormData { file, title }
+   */
+  async upload(formData) {
+    return uploadSong(formData);
+  },
+  /**
+   * Lấy danh sách bài hát theo thể loại.
+   * Gọi GET /api/v1/songs?genre=Pop
+   */
+  async getByGenre(genreName) {
+    const result = await getSongs({ genre: genreName });
+    return result.data;
   },
 };
