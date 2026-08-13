@@ -89,11 +89,7 @@ function App() {
         />
         <Route
           path="/favorites"
-          element={
-            <RequireAuth>
-              <FavoritesPage onPlay={handlePlay} />
-            </RequireAuth>
-          }
+          element={<FavoritesPage onPlay={handlePlay} />}
         />
         <Route
           path="/uploaded"
