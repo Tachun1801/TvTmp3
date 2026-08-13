@@ -38,7 +38,7 @@ export default function SignUpPage() {
             <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
               <span className="text-white text-lg font-bold">Z</span>
             </div>
-            <span className="text-white font-bold text-xl tracking-tight">Zingify MP3</span>
+            <span className="text-white font-bold text-xl tracking-tight">TVT MP3</span>
           </div>
 
           <h2 className="text-white text-3xl font-bold mb-2">Create account</h2>
