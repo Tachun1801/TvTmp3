@@ -501,7 +501,7 @@ MusicPlayer — Range hoạt động thì tua mới chạy.
 | Vấn đề | Hướng xử lý |
 |---|---|
 | Đọc cả file vào RAM khi stream | Chấp nhận được với mp3 < 20MB. Production: trả `ResourceRegion` cho Spring stream dần, không nạp cả file |
-| `duration` đang để null | Frontend tự đo từ audio metadata (MusicPlayer đã code sẵn). Sau này có thể thêm field `duration` vào FormData và đọc metadata bằng thư viện như `jaudiotagger` |
+| `duration` ✅ ĐÃ LÀM | Frontend đo bằng Audio API trước khi upload (`UploadedPage.readAudioDuration`) rồi gửi kèm FormData field `duration`; backend nhận `@RequestParam(value="duration", required=false)` và lưu, fallback 0 nếu không đo được |
 | `genreIds` trong FormData frontend | Bỏ qua ở bản v1 — cần quan hệ Song↔SongGenre trước. Sau khi có, thêm `@RequestParam(required=false) List<Long> genreIds` |
 | Muốn đếm lượt nghe khi stream | Thêm 1 dòng trong `getAudioResource`: gọi `historyService.record(...)` hoặc tăng cột play_count (chú ý: gọi từ controller chứ không phải service để không nằm trong transaction đọc) |
 | Chuyển sang S3/Cloudinary sau này | Chỉ sửa `FileStorageService` (store/load/delete) + đổi `buildAbsoluteUrl` — DB và frontend không đổi |

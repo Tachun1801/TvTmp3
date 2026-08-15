@@ -24,7 +24,7 @@ function delay(ms) {
 // ============================================================
 // Real API (bỏ comment khi bật real API)
 // ============================================================
-// import client from './client';
+import client from './client';
 // ============================================================
 
 // ============================================================
@@ -166,28 +166,28 @@ export async function getCharts(type = 'alltime') {
 
 export async function uploadSong(formData) {
   // --- Mock: xóa block này ---
-  if (MOCK) {
-    await delay(500);
-    return {
-      id: mockSongs.length + 1,
-      title: formData.get('title'),
-      duration: 180,
-      fileUrl: '/uploads/new-song.mp3',
-      imgUrl: `https://picsum.photos/seed/song${mockSongs.length + 1}/300/300`,
-      artist: 'Bạn',
-      userId: 1,
-      genres: ['Pop'],
-      playCount: 0,
-      uploadedAt: new Date().toISOString(),
-    };
-  }
+  // if (MOCK) {
+  //   await delay(500);
+  //   return {
+  //     id: mockSongs.length + 1,
+  //     title: formData.get('title'),
+  //     duration: 180,
+  //     fileUrl: '/uploads/new-song.mp3',
+  //     imgUrl: `https://picsum.photos/seed/song${mockSongs.length + 1}/300/300`,
+  //     artist: 'Bạn',
+  //     userId: 1,
+  //     genres: ['Pop'],
+  //     playCount: 0,
+  //     uploadedAt: new Date().toISOString(),
+  //   };
+  // }
   // --- End mock ---
 
   // TODO API: bỏ comment bên dưới
-  // const res = await client.post('/api/v1/songs', formData, {
-  //   headers: { 'Content-Type': 'multipart/form-data' },
-  // });
-  // return res.data;
+  const res = await client.post('/api/v1/songs', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data;
 }
 
 // ============================================================

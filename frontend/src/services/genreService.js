@@ -17,9 +17,19 @@ export const genreService = {
   /**
    * Lấy danh sách tất cả thể loại.
    * Gọi GET /api/v1/genres
-   * Response: [{ genre_id, name, description, img_url }]
+   *
+   * === MAP TÊN FIELD ===
+   * Mock trả snake_case ({ genre_id, img_url }), backend thật trả camelCase
+   * ({ genreId, imgUrl }). Các trang (GenresPage, UploadedPage) đang đọc
+   * snake_case -> map về snake_case ở ĐÂY (nơi duy nhất), UI không phải sửa.
    */
   async getAll() {
-    return getGenres();
+    const genres = await getGenres();
+    return genres.map((g) => ({
+      genre_id: g.genreId ?? g.genre_id,
+      name: g.name,
+      description: g.description,
+      img_url: g.imgUrl ?? g.img_url,
+    }));
   },
 };

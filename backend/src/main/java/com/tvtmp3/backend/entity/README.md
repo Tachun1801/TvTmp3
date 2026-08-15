@@ -61,23 +61,20 @@ public class SongGenreId implements Serializable {
 }
 ```
 
-### 2. `created_at` tự điền khi tạo mới (khuyên dùng)
+### 2. `created_at` tự điền khi tạo mới ✅ ĐÃ LÀM
 
-Hiện `createdAt` để null, DB có DEFAULT CURRENT_TIMESTAMP nhưng Hibernate
-gửi NULL nên cột vẫn có thể null (trừ khi dùng `columnDefinition`). Cách chuẩn:
+Đã thêm `@PrePersist` vào cả 4 entity có cột timestamp: `User.createAt`,
+`Song.createdAt`, `PlayHistory.playedAt`, `FavoriteSong.createdAt` — nếu
+không có, Hibernate chèn NULL vào cột NOT NULL và MySQL trả 409.
+
+Mẫu code (đã có trong từng entity — xem `User.java` để tham khảo):
 
 ```java
-@Getter
-@Column(name = "created_at", nullable = false, updatable = false)
-private Instant createdAt;
-
 @PrePersist
 void onCreate() {
     this.createdAt = Instant.now();   // tự set trước khi INSERT
 }
 ```
-
-Tương tự cho `PlayHistory.playedAt`.
 
 ### 3. Quan hệ ngược `@OneToMany` (chỉ khi cần)
 

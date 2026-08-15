@@ -34,3 +34,6 @@ build/
 
 
 .env
+
+# File upload do người dùng gửi lên (không commit lên git)
+uploads/

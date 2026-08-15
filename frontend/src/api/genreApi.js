@@ -23,7 +23,7 @@ function delay(ms) {
 // ============================================================
 // Real API (bỏ comment khi bật real API)
 // ============================================================
-// import client from './client';
+import client from './client';
 // ============================================================
 
 // ============================================================
@@ -33,13 +33,13 @@ function delay(ms) {
 
 export async function getGenres() {
   // --- Mock: xóa block này ---
-  if (MOCK) {
-    await delay(100);
-    return [...mockGenres];
-  }
+  // if (MOCK) {
+  //   await delay(100);
+  //   return [...mockGenres];
+  // }
   // --- End mock ---
 
   // TODO API: bỏ comment bên dưới
-  // const res = await client.get('/api/v1/genres');
-  // return res.data;
+  const res = await client.get('/api/v1/genres');
+  return res.data;
 }

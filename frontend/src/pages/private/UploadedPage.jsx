@@ -38,6 +38,27 @@ function getFileNameWithoutExt(filename) {
   return dot > 0 ? filename.slice(0, dot) : filename;
 }
 
+/**
+ * Đọc duration (giây) của file audio bằng Audio API — trình duyệt tự decode
+ * nên không cần thư viện, chạy được với mọi format browser hỗ trợ (mp3/wav/flac).
+ * Trả null nếu đọc thất bại — backend sẽ lưu 0 làm fallback (cột duration NOT NULL).
+ */
+function readAudioDuration(file) {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const audio = new Audio();
+    audio.addEventListener('loadedmetadata', () => {
+      URL.revokeObjectURL(url);
+      resolve(Math.round(audio.duration));
+    });
+    audio.addEventListener('error', () => {
+      URL.revokeObjectURL(url);
+      resolve(null);
+    });
+    audio.src = url;
+  });
+}
+
 // ─── Upload Zone ────────────────────────────────────────────
 
 function UploadZone({ onFileSelect }) {
@@ -90,6 +111,35 @@ function UploadZone({ onFileSelect }) {
 function UploadForm({ file, genres, uploading, uploadError, onUpload, onCancel }) {
   const [title, setTitle] = useState(() => getFileNameWithoutExt(file.name));
   const [selectedGenres, setSelectedGenres] = useState([]);
+  // KHÓA LOCAL chống double-submit: prop `uploading` của parent chỉ thành true
+  // SAU khi onUpload chạy — trong lúc await đo duration, click thêm lần nữa
+  // vẫn lọt qua và gửi nhiều POST /api/v1/songs (DB sinh nhiều bản ghi)
+  const [submitting, setSubmitting] = useState(false);
+  // Cover image (optional) — backend nhận field "cover" (multipart)
+  const coverInputRef = useRef(null);
+  const [coverFile, setCoverFile] = useState(null);
+  const [coverPreview, setCoverPreview] = useState(null);
+
+  const handleCoverChange = (e) => {
+    const f = e.target.files?.[0];
+    if (f) {
+      setCoverFile(f);
+      // Preview bằng object URL — hủy URL cũ trước khi thay mới để không rò memory
+      setCoverPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(f);
+      });
+    }
+    e.target.value = ''; // cho phép chọn lại cùng 1 ảnh
+  };
+
+  const removeCover = () => {
+    setCoverFile(null);
+    setCoverPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+  };
 
   const toggleGenre = (id) => {
     setSelectedGenres((prev) =>
@@ -97,11 +147,33 @@ function UploadForm({ file, genres, uploading, uploadError, onUpload, onCancel }
     );
   };
 
-  const handleUpload = () => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('title', title.trim() || file.name);
-    onUpload(formData);
+  const handleUpload = async () => {
+    if (submitting) return;   // click thứ 2 trong lúc đang gửi -> bỏ qua
+    setSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', title.trim() || file.name);
+
+      // Đo duration từ file trước khi gửi — backend lưu luôn để list hiển thị đúng
+      // thời lượng thay vì 0:00
+      const duration = await readAudioDuration(file);
+      if (duration != null) {
+        formData.append('duration', String(duration));
+      }
+      if (coverFile) {
+        formData.append('cover', coverFile);
+      }
+      if (selectedGenres.length > 0) {
+        // Mỗi genre 1 param "genreIds" — Spring gom thành List<Long> genreIds
+        selectedGenres.forEach((g) => formData.append('genreIds', String(g)));
+      }
+      onUpload(formData);
+    } finally {
+      // Upload thành công thì parent unmount form này nên không cần reset;
+      // thất bại thì mở khóa để user thử lại
+      setSubmitting(false);
+    }
   };
 
   const isValid = title.trim().length > 0;
@@ -151,19 +223,66 @@ function UploadForm({ file, genres, uploading, uploadError, onUpload, onCancel }
         />
       </div>
 
+      {/* Cover picker (optional) */}
+      <div>
+        <label className="text-gray-400 text-xs block mb-2">Cover image (optional)</label>
+        <input
+          ref={coverInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleCoverChange}
+        />
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => coverInputRef.current?.click()}
+            disabled={uploading || submitting}
+            className="px-3 py-1.5 rounded-full text-xs font-medium text-gray-400
+                       hover:text-white transition-colors disabled:opacity-50"
+            style={{ background: 'rgba(255,255,255,0.06)' }}
+          >
+            {coverFile ? 'Change cover' : 'Add cover'}
+          </button>
+
+          {coverPreview && (
+            <img
+              src={coverPreview}
+              alt="cover preview"
+              className="w-12 h-12 rounded-lg object-cover border border-white/10"
+            />
+          )}
+
+          {coverFile && (
+            <button
+              type="button"
+              onClick={removeCover}
+              disabled={uploading || submitting}
+              className="p-1 rounded-lg hover:bg-white/5 transition-colors disabled:opacity-50"
+              title="Remove cover"
+            >
+              <X size={14} className="text-gray-500" />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Genre checkboxes */}
       {genres.length > 0 && (
         <div>
           <label className="text-gray-400 text-xs block mb-2">Genres (optional)</label>
           <div className="flex flex-wrap gap-2">
             {genres.map((g) => {
-              const isSelected = selectedGenres.includes(g.id);
+              // Field là genre_id (snake_case — khớp mock + GenresPage),
+              // KHÔNG phải g.id. Nếu dùng g.id thì mọi genre đều undefined
+              // -> click 1 genre sẽ sáng TẤT CẢ.
+              const isSelected = selectedGenres.includes(g.genre_id);
               return (
                 <button
-                  key={g.id}
+                  key={g.genre_id}
                   type="button"
                   disabled={uploading}
-                  onClick={() => toggleGenre(g.id)}
+                  onClick={() => toggleGenre(g.genre_id)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all
                               ${isSelected
                                 ? 'bg-purple-600 text-white'
@@ -188,7 +307,7 @@ function UploadForm({ file, genres, uploading, uploadError, onUpload, onCancel }
       <button
         type="button"
         onClick={handleUpload}
-        disabled={!isValid || uploading}
+        disabled={!isValid || uploading || submitting}
         className="w-full py-2.5 rounded-lg text-white text-sm font-semibold
                    bg-purple-600 hover:bg-purple-500 transition-colors
                    disabled:opacity-40 disabled:cursor-not-allowed
