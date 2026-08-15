@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -38,4 +39,13 @@ public class PlayHistory {
     @Getter
     @Column(name = "played_at")
     private Instant playedAt;
+
+    /**
+     * Tự điền played_at trước khi INSERT — tránh lỗi NULL vào cột NOT NULL
+     * (cùng lý do với User.createAt).
+     */
+    @PrePersist
+    void onCreate() {
+        this.playedAt = Instant.now();
+    }
 }

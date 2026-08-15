@@ -28,7 +28,7 @@ function delay(ms) {
 // ============================================================
 // Real API (bỏ comment khi bật real API)
 // ============================================================
-// import client from './client';
+import client from './client';
 // ============================================================
 
 // ============================================================
@@ -39,17 +39,17 @@ function delay(ms) {
 
 export async function register({ email, password, fullName, birth }) {
   // --- Mock: xóa block này ---
-  if (MOCK) {
-    await delay(300);
-    return mockRegister({ email, password, fullName, birth });
-  }
+  // if (MOCK) {
+  //   await delay(300);
+  //   return mockRegister({ email, password, fullName, birth });
+  // }
   // --- End mock ---
 
   // TODO API: bỏ comment bên dưới
-  // const res = await client.post('/api/v1/auth/register', {
-  //   email, password, fullName, birth,
-  // });
-  // return res.data;
+  const res = await client.post('/api/v1/auth/register', {
+    email, password, fullName, birth,
+  });
+  return res.data;
 }
 
 // ============================================================
@@ -60,15 +60,15 @@ export async function register({ email, password, fullName, birth }) {
 
 export async function login(email, password) {
   // --- Mock: xóa block này ---
-  if (MOCK) {
-    await delay(300);
-    return mockLogin(email, password);
-  }
+  // if (MOCK) {
+  //   await delay(300);
+  //   return mockLogin(email, password);
+  // }
   // --- End mock ---
 
   // TODO API: bỏ comment bên dưới
-  // const res = await client.post('/api/v1/auth/login', { email, password });
-  // return res.data;
+  const res = await client.post('/api/v1/auth/login', { email, password });
+  return res.data;
 }
 
 // ============================================================
@@ -79,15 +79,15 @@ export async function login(email, password) {
 
 export async function getMe() {
   // --- Mock: xóa block này ---
-  if (MOCK) {
-    await delay(150);
-    return mockGetMe(localStorage.getItem('token'));
-  }
+  // if (MOCK) {
+  //   await delay(150);
+  //   return mockGetMe(localStorage.getItem('token'));
+  // }
   // --- End mock ---
 
   // TODO API: bỏ comment bên dưới
-  // const res = await client.get('/api/v1/auth/me');
-  // return res.data;
+  const res = await client.get('/api/v1/auth/me');
+  return res.data;
 }
 
 // ============================================================
@@ -98,13 +98,13 @@ export async function getMe() {
 
 export async function updateMe({ fullName, birth }) {
   // --- Mock: xóa block này ---
-  if (MOCK) {
-    await delay(200);
-    return mockUpdateMe(localStorage.getItem('token'), { fullName, birth });
-  }
+  // if (MOCK) {
+  //   await delay(200);
+  //   return mockUpdateMe(localStorage.getItem('token'), { fullName, birth });
+  // }
   // --- End mock ---
 
   // TODO API: bỏ comment bên dưới
-  // const res = await client.put('/api/v1/auth/me', { fullName, birth });
-  // return res.data;
+  const res = await client.put('/api/v1/auth/me', { fullName, birth });
+  return res.data;
 }

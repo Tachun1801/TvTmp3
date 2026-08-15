@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,4 +46,15 @@ public class User {
     @Getter
     @Column(name = "created_at")
     private Instant createAt;
+
+    /**
+     * Tự điền created_at ngay TRƯỚC khi INSERT.
+     * Cần thiết vì Hibernate luôn đưa mọi cột vào INSERT — nếu để null thì
+     * cột NOT NULL DEFAULT CURRENT_TIMESTAMP sẽ báo lỗi "cannot be null"
+     * (DEFAULT chỉ có tác dụng khi cột KHÔNG xuất hiện trong câu INSERT).
+     */
+    @PrePersist
+    void onCreate() {
+        this.createAt = Instant.now();
+    }
 }

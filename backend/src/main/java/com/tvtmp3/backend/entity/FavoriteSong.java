@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,4 +37,13 @@ public class FavoriteSong {
     @Getter
     @Column(name = "created_at")
     private Instant createdAt;
+
+    /**
+     * Tự điền created_at trước khi INSERT — tránh lỗi NULL vào cột NOT NULL
+     * (cùng lý do với User.createAt).
+     */
+    @PrePersist
+    void onCreate() {
+        this.createdAt = Instant.now();
+    }
 }
