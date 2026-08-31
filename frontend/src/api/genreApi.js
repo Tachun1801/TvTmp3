@@ -12,7 +12,6 @@
 // ============================================================
 // Mock (xóa hết phần này khi bật real API)
 // ============================================================
-import { mockGenres } from '@/mock/genres';
 const MOCK = true;
 
 function delay(ms) {
@@ -32,14 +31,6 @@ import client from './client';
 // ============================================================
 
 export async function getGenres() {
-  // --- Mock: xóa block này ---
-  // if (MOCK) {
-  //   await delay(100);
-  //   return [...mockGenres];
-  // }
-  // --- End mock ---
-
-  // TODO API: bỏ comment bên dưới
   const res = await client.get('/api/v1/genres');
   return res.data;
 }

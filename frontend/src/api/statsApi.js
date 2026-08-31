@@ -1,33 +1,11 @@
 /**
- * Stats API — Data Access Layer
+ * Stats API — Data Access Layer (REAL API)
  *
- * Thống kê cho Profile Page. Backend query JOIN/COUNT trả về con số,
- * frontend chỉ việc hiển thị.
- *
- * === HƯỚNG DẪN BẬT API THẬT ===
- * 1. Đổi MOCK = false bên dưới
- * 2. Bỏ comment dòng import client và phần real API
- * 3. Xóa toàn bộ phần "Mock"
- * 4. Xóa file @/mock/stats.js
- * 5. KHÔNG cần sửa file nào khác
+ * Thống kê cho Profile Page. Backend trả 4 con số, field khớp thẳng với
+ * StatsResponse — không cần map.
  */
 
-// ============================================================
-// Mock (xóa hết phần này khi bật real API)
-// ============================================================
-import { mockStats } from '@/mock/stats';
-const MOCK = true;
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-// ============================================================
-
-// ============================================================
-// Real API (bỏ comment khi bật real API)
-// ============================================================
-// import client from './client';
-// ============================================================
+import client from './client';
 
 // ============================================================
 // GET /api/v1/me/stats — Thống kê user (cần token)
@@ -42,14 +20,6 @@ function delay(ms) {
 // ============================================================
 
 export async function getMyStats() {
-  // --- Mock: xóa block này ---
-  if (MOCK) {
-    await delay(150);
-    return { ...mockStats };
-  }
-  // --- End mock ---
-
-  // TODO API: bỏ comment bên dưới
-  // const res = await client.get('/api/v1/me/stats');
-  // return res.data;
+  const res = await client.get('/api/v1/me/stats');
+  return res.data;
 }

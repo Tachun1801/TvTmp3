@@ -41,6 +41,9 @@ function App() {
   const { data: songs } = useSongs(fetchDiscoverSongs);
 
   const [currentTrack, setCurrentTrack] = useState(null);
+  // Bump mỗi lần user bấm chọn bài — MusicPlayer dùng để re-sync trạng thái
+  // Tym kể cả khi bấm lại đúng bài đang phát (currentTrack.id không đổi).
+  const [playVersion, setPlayVersion] = useState(0);
 
   // Set bài đầu tiên làm current track khi data load xong
   useEffect(() => {
@@ -51,6 +54,7 @@ function App() {
 
   const handlePlay = (track) => {
     setCurrentTrack(track);
+    setPlayVersion((v) => v + 1);
   };
 
   return (
@@ -61,7 +65,13 @@ function App() {
 
       {/* App pages — có Layout + Sidebar + MusicPlayer */}
       <Route
-        element={<Layout currentTrack={currentTrack} onPlay={handlePlay} />}
+        element={
+          <Layout
+            currentTrack={currentTrack}
+            onPlay={handlePlay}
+            playVersion={playVersion}
+          />
+        }
       >
         {/* === PUBLIC: ai cũng vào được === */}
         <Route
@@ -89,7 +99,11 @@ function App() {
         />
         <Route
           path="/favorites"
-          element={<FavoritesPage onPlay={handlePlay} />}
+          element={
+            <RequireAuth>
+              <FavoritesPage onPlay={handlePlay} />
+            </RequireAuth>
+          }
         />
         <Route
           path="/uploaded"

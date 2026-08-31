@@ -1,33 +1,13 @@
 /**
- * Favorite API — Data Access Layer
+ * Favorite API — Data Access Layer (REAL API)
  *
- * === HƯỚNG DẪN BẬT API THẬT ===
- * 1. Đổi MOCK = false bên dưới
- * 2. Bỏ comment dòng import client và phần real API trong mỗi hàm
- * 3. Xóa toàn bộ phần "Mock"
- * 4. Xóa file @/mock/favorites.js
- * 5. KHÔNG cần sửa file nào khác
+ * Backend xác định user từ token (client.js). Response shape backend
+ * (SongDto) map qua toFeSong — nơi DUY NHẤT biết shape backend.
  */
 
-// ============================================================
-// Mock (xóa hết phần này khi bật real API)
-// ============================================================
-import { mockGetFavorites, mockAddFavorite, mockRemoveFavorite } from '@/mock/favorites';
-const MOCK = true;
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// Mock: luôn dùng userId = 1 (khi có backend thật, token sẽ xác định user)
-const MOCK_USER_ID = 1;
-// ============================================================
-
-// ============================================================
-// Real API (bỏ comment khi bật real API)
-// ============================================================
-// import client from './client';
-// ============================================================
+import client from './client';
+import { toFeSong } from './normalizers';
+import { getSessionUserId } from './session';
 
 // ============================================================
 // GET /api/v1/favorites — Danh sách yêu thích (cần token)
@@ -35,16 +15,19 @@ const MOCK_USER_ID = 1;
 // ============================================================
 
 export async function getFavorites() {
-  // --- Mock: xóa block này ---
-  if (MOCK) {
-    await delay(200);
-    return mockGetFavorites(MOCK_USER_ID);
-  }
-  // --- End mock ---
+  const res = await client.get('/api/v1/favorites', { params: { page: 1, size: 100 } });
+  return res.data.data.map(toFeSong);
+}
 
-  // TODO API: bỏ comment bên dưới
-  // const res = await client.get('/api/v1/favorites');
-  // return res.data;
+// ============================================================
+// GET favorite ids — chỉ lấy mảng songId (MusicPlayer check nhanh).
+// Chưa đăng nhập → [] (không gọi API chắc chắn 401).
+// ============================================================
+
+export async function getFavoriteIds() {
+  if (getSessionUserId() == null) return [];
+  const res = await client.get('/api/v1/favorites', { params: { page: 1, size: 100 } });
+  return res.data.data.map((song) => song.songId);
 }
 
 // ============================================================
@@ -54,16 +37,8 @@ export async function getFavorites() {
 // ============================================================
 
 export async function addFavorite(songId) {
-  // --- Mock: xóa block này ---
-  if (MOCK) {
-    await delay(150);
-    return mockAddFavorite(MOCK_USER_ID, songId);
-  }
-  // --- End mock ---
-
-  // TODO API: bỏ comment bên dưới
-  // const res = await client.post('/api/v1/favorites', { songId });
-  // return res.data;
+  const res = await client.post('/api/v1/favorites', { songId });
+  return res.data;
 }
 
 // ============================================================
@@ -72,14 +47,6 @@ export async function addFavorite(songId) {
 // ============================================================
 
 export async function removeFavorite(songId) {
-  // --- Mock: xóa block này ---
-  if (MOCK) {
-    await delay(150);
-    return mockRemoveFavorite(MOCK_USER_ID, songId);
-  }
-  // --- End mock ---
-
-  // TODO API: bỏ comment bên dưới
-  // const res = await client.delete(`/api/v1/favorites/${songId}`);
-  // return res.data;
+  const res = await client.delete(`/api/v1/favorites/${songId}`);
+  return res.data;
 }

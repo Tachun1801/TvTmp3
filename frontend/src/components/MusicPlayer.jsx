@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Volume2, ListMusic } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Volume2, ListMusic, Heart } from 'lucide-react';
+import { getFavoriteIds, addFavorite, removeFavorite } from '@/api/favoriteApi';
+import { recordPlay } from '@/api/historyApi';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * MusicPlayer — Thanh phát nhạc dưới cùng (fixed bottom bar).
@@ -40,7 +44,10 @@ import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Volume2, ListMusic
  *      - audio.onLoadedMetadata → ghi đè bằng duration thật từ file MP3
  */
 
-export default function MusicPlayer({ currentTrack, onQueueToggle }) {
+export default function MusicPlayer({ currentTrack, onQueueToggle, playVersion }) {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
   // =========================================================================
   // State
   // =========================================================================
@@ -50,6 +57,7 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
   const [duration, setDuration] = useState(currentTrack?.duration || 0); // giây — khởi tạo từ DB, ghi đè bởi audio metadata
   const [isDraggingProgress, setIsDraggingProgress] = useState(false);  // đang kéo thanh progress?
   const [isDraggingVolume, setIsDraggingVolume] = useState(false);      // đang kéo thanh volume?
+  const [isFavorite, setIsFavorite] = useState(false);                  // bài hiện tại có trong yêu thích?
 
   // =========================================================================
   // Refs
@@ -118,6 +126,49 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
       audioRef.current.load();
       setProgress(0);
       setIsPlaying(true);
+    }
+  }, [currentTrack?.id]);
+
+  // =========================================================================
+  // Effect: đồng bộ trạng thái Tym với favoriteApi
+  //
+  // Chạy khi:
+  //   - đổi bài (currentTrack.id)
+  //   - bấm chọn bài (playVersion bump — kể cả bấm lại đúng bài đang phát,
+  //     vì trạng thái yêu thích có thể đã đổi ở FavoritesPage)
+  //   - login/logout (user.id) — mock favoriteApi phụ thuộc user
+  //
+  // getFavoriteIds không delay (mock) → nút sáng đúng trạng thái ngay.
+  // Flag cancelled để bỏ qua response cũ nếu đổi bài liên tục.
+  // =========================================================================
+  useEffect(() => {
+    if (!currentTrack?.id) {
+      setIsFavorite(false);
+      return;
+    }
+
+    let cancelled = false;
+    getFavoriteIds()
+      .then((ids) => {
+        if (!cancelled) {
+          setIsFavorite(ids.includes(currentTrack.id));
+        }
+      })
+      .catch(() => {}); // API lỗi → giữ nguyên trạng thái, không crash player
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentTrack?.id, playVersion, user?.id]);
+
+  // =========================================================================
+  // Effect: ghi nhận lượt nghe khi ĐỔI bài (không watch playVersion để bấm
+  // lại đúng bài đang phát không ghi 2 lần). Fire-and-forget: guest gọi lên
+  // backend → 401 bị nuốt im lặng, không crash player.
+  // =========================================================================
+  useEffect(() => {
+    if (currentTrack?.id) {
+      recordPlay(currentTrack.id).catch(() => {});
     }
   }, [currentTrack?.id]);
 
@@ -230,6 +281,30 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  /**
+   * Toggle yêu thích — optimistic update: đổi UI ngay, nếu API lỗi thì rollback.
+   * Chưa đăng nhập → không tym được, chuyển sang trang Favorites
+   * (RequireAuth sẽ hiện màn "Yêu cầu đăng nhập").
+   */
+  const handleToggleFavorite = async () => {
+    if (!currentTrack) return;
+    if (!isAuthenticated) {
+      navigate('/favorites');
+      return;
+    }
+    const next = !isFavorite;
+    setIsFavorite(next);
+    try {
+      if (next) {
+        await addFavorite(currentTrack.id);
+      } else {
+        await removeFavorite(currentTrack.id);
+      }
+    } catch {
+      setIsFavorite(!next); // rollback nếu API thất bại
+    }
+  };
+
   if (!currentTrack) return null;
   // =========================================================================
   // Render
@@ -287,6 +362,24 @@ export default function MusicPlayer({ currentTrack, onQueueToggle }) {
               ) : (
                 <Play size={18} className="text-black ml-0.5" />
               )}
+            </button>
+
+            {/* Tym — yêu thích bài đang phát, đặt cạnh nút play */}
+            <button
+              type="button"
+              onClick={handleToggleFavorite}
+              aria-label={
+                isFavorite
+                  ? `Bỏ yêu thích ${currentTrack.title}`
+                  : `Yêu thích ${currentTrack.title}`
+              }
+              className={`transition-colors ${
+                isFavorite
+                  ? 'text-pink-400 hover:text-pink-300'
+                  : 'text-white/40 hover:text-white/80'
+              }`}
+            >
+              <Heart size={22} className={isFavorite ? 'fill-current' : ''} />
             </button>
             <button className="text-white/60 hover:text-white transition-colors">
               <SkipForward size={20} />

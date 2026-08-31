@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { login as loginApi, register as registerApi, getMe, updateMe } from '@/api/authApi';
+import { setSessionUserId } from '@/api/session';
 
 const AuthContext = createContext(null);
 
@@ -13,13 +14,19 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('token');
     if (token) {
       getMe()
-        .then((userData) => setUser(userData))
+        .then((userData) => {
+          setUser(userData);
+          // Đồng bộ user cho các api mock còn phụ thuộc user (xem session.js)
+          setSessionUserId(userData.id);
+        })
         .catch(() => {
           // Token hết hạn hoặc không hợp lệ
           localStorage.removeItem('token');
+          setSessionUserId(null);
         })
         .finally(() => setLoading(false));
     } else {
+      setSessionUserId(null);
       setLoading(false);
     }
   }, []);
@@ -31,6 +38,7 @@ export function AuthProvider({ children }) {
       const { user: userData, token } = await loginApi(email, password);
       localStorage.setItem('token', token);
       setUser(userData);
+      setSessionUserId(userData.id);
       return { success: true };
     } catch (err) {
       const message = err.response?.data?.message || err.message || 'Đăng nhập thất bại';
@@ -48,6 +56,7 @@ export function AuthProvider({ children }) {
       const { user: userData, token } = await registerApi({ email, password, fullName, birth });
       localStorage.setItem('token', token);
       setUser(userData);
+      setSessionUserId(userData.id);
       return { success: true };
     } catch (err) {
       const message = err.response?.data?.message || err.message || 'Đăng ký thất bại';
@@ -77,6 +86,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem('token');
+    setSessionUserId(null);
     setError(null);
   }, []);
 

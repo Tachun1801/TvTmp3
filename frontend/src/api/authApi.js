@@ -1,12 +1,11 @@
 /**
- * Auth API — Data Access Layer
+ * Auth API — Data Access Layer (REAL API)
  *
- * === HƯỚNG DẪN BẬT API THẬT ===
- * 1. Đổi MOCK = false bên dưới
- * 2. Bỏ comment dòng import client và phần real API trong mỗi hàm
- * 3. Xóa toàn bộ phần "Mock" (import + const MOCK + block mock)
- * 4. Xóa file @/mock/auth.js
- * 5. KHÔNG cần sửa file nào khác (service, hook, component)
+ * === SHAPE MAP ===
+ * Backend trả { user: { userId, email, fullName, birth, createdAt }, token }
+ * nhưng toàn bộ app dùng { id, ... } (AuthContext đọc userData.id).
+ * Map ở đây — nơi DUY NHẤT biết shape backend (quy tắc GUIDE.md) — nên
+ * AuthContext, ProfilePage, MusicPlayer không phải sửa gì.
  *
  * === CÁCH DÙNG TOKEN ===
  * - login/register trả về { user, token }
@@ -14,22 +13,18 @@
  * - client.js tự động gắn token vào header các request sau
  */
 
-// ============================================================
-// Mock (xóa hết phần này khi bật real API)
-// ============================================================
-import { mockLogin, mockRegister, mockGetMe, mockUpdateMe } from '@/mock/auth';
-const MOCK = true;
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-// ============================================================
-
-// ============================================================
-// Real API (bỏ comment khi bật real API)
-// ============================================================
 import client from './client';
-// ============================================================
+
+/** UserDto backend → shape FE { id, email, fullName, birth, createdAt }. */
+function toFeUser(u) {
+  return {
+    id: u.userId,
+    email: u.email,
+    fullName: u.fullName,
+    birth: u.birth ?? null,
+    createdAt: u.createdAt ?? null,
+  };
+}
 
 // ============================================================
 // POST /api/v1/auth/register — Đăng ký
@@ -38,18 +33,10 @@ import client from './client';
 // ============================================================
 
 export async function register({ email, password, fullName, birth }) {
-  // --- Mock: xóa block này ---
-  // if (MOCK) {
-  //   await delay(300);
-  //   return mockRegister({ email, password, fullName, birth });
-  // }
-  // --- End mock ---
-
-  // TODO API: bỏ comment bên dưới
   const res = await client.post('/api/v1/auth/register', {
     email, password, fullName, birth,
   });
-  return res.data;
+  return { user: toFeUser(res.data.user), token: res.data.token };
 }
 
 // ============================================================
@@ -59,16 +46,8 @@ export async function register({ email, password, fullName, birth }) {
 // ============================================================
 
 export async function login(email, password) {
-  // --- Mock: xóa block này ---
-  // if (MOCK) {
-  //   await delay(300);
-  //   return mockLogin(email, password);
-  // }
-  // --- End mock ---
-
-  // TODO API: bỏ comment bên dưới
   const res = await client.post('/api/v1/auth/login', { email, password });
-  return res.data;
+  return { user: toFeUser(res.data.user), token: res.data.token };
 }
 
 // ============================================================
@@ -78,16 +57,8 @@ export async function login(email, password) {
 // ============================================================
 
 export async function getMe() {
-  // --- Mock: xóa block này ---
-  // if (MOCK) {
-  //   await delay(150);
-  //   return mockGetMe(localStorage.getItem('token'));
-  // }
-  // --- End mock ---
-
-  // TODO API: bỏ comment bên dưới
   const res = await client.get('/api/v1/auth/me');
-  return res.data;
+  return toFeUser(res.data);
 }
 
 // ============================================================
@@ -97,14 +68,6 @@ export async function getMe() {
 // ============================================================
 
 export async function updateMe({ fullName, birth }) {
-  // --- Mock: xóa block này ---
-  // if (MOCK) {
-  //   await delay(200);
-  //   return mockUpdateMe(localStorage.getItem('token'), { fullName, birth });
-  // }
-  // --- End mock ---
-
-  // TODO API: bỏ comment bên dưới
   const res = await client.put('/api/v1/auth/me', { fullName, birth });
-  return res.data;
+  return toFeUser(res.data);
 }

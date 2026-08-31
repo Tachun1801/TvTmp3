@@ -11,7 +11,7 @@
  * - Hook + Component chỉ cần gọi service mới, không cần sửa gì khác
  */
 
-import { getSongs, getSongById, searchSongs, getCharts, uploadSong } from '@/api/songApi';
+import { getSongs, getSongById, searchSongs, getCharts, uploadSong, deleteSong } from '@/api/songApi';
 import { getHistory } from '@/api/historyApi';
 import { getMySongs } from '@/api/mySongsApi';
 
@@ -19,9 +19,10 @@ export const songService = {
   /**
    * Lấy danh sách bài hát cho Discover.
    * Gọi GET /api/v1/songs?sort=latest — Vinh (DiscoverPage)
+   * size=50: backend mặc định 20, Discover lọc client-side nên cần nhiều hơn.
    */
   async getDiscover() {
-    const result = await getSongs({ sort: 'latest' });
+    const result = await getSongs({ sort: 'latest', size: 50 });
     // Trích xuất mảng data từ paginated response { data, total, page, size }
     return result.data;
   },
@@ -74,12 +75,21 @@ export const songService = {
   async upload(formData) {
     return uploadSong(formData);
   },
+
+  /**
+   * Xóa bài hát đã upload (chỉ người upload — backend kiểm tra 403).
+   * Gọi DELETE /api/v1/songs/{id}
+   */
+  async deleteSong(id) {
+    return deleteSong(id);
+  },
+
   /**
    * Lấy danh sách bài hát theo thể loại.
    * Gọi GET /api/v1/songs?genre=Pop
    */
   async getByGenre(genreName) {
-    const result = await getSongs({ genre: genreName });
+    const result = await getSongs({ genre: genreName, size: 50 });
     return result.data;
   },
 };

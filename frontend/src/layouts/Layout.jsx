@@ -3,7 +3,7 @@ import Sidebar from '@/components/Sidebar';
 import MusicPlayer from '@/components/MusicPlayer';
 import RightPanel from '@/components/RightPanel';
 
-export default function Layout({ currentTrack, onPlay }) {
+export default function Layout({ currentTrack, onPlay, playVersion }) {
   return (
     <div
       className="h-screen flex flex-col overflow-hidden"
@@ -18,7 +18,7 @@ export default function Layout({ currentTrack, onPlay }) {
         </main>
         <RightPanel onPlay={onPlay} />
       </div>
-      <MusicPlayer currentTrack={currentTrack} />
+      <MusicPlayer currentTrack={currentTrack} playVersion={playVersion} />
     </div>
   );
 }

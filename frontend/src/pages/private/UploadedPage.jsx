@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { Upload, X, Music, CheckCircle } from 'lucide-react';
+import { Upload, X, Music, CheckCircle, Trash2 } from 'lucide-react';
 import { useSongs } from '@/hooks/useSongs';
 import { useGenres } from '@/hooks/useGenres';
 import { songService } from '@/services/songService';
@@ -321,17 +321,44 @@ function UploadForm({ file, genres, uploading, uploadError, onUpload, onCancel }
 
 // ─── Song Card (grid) ────────────────────────────────────────
 
-function SongCard({ song, onPlay }) {
+function SongCard({ song, onPlay, onDelete, deleting }) {
   const { title, artist, duration, playCount, imgUrl } = song;
 
   return (
-    <button
-      type="button"
+    // div role=button thay <button> để có thể đặt nút xóa con bên trong
+    // (nesting button trong button là invalid HTML)
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onPlay(song)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onPlay(song);
+        }
+      }}
       className="group relative w-full text-left rounded-xl overflow-hidden transition-all duration-300
-                 hover:scale-[1.03] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                 hover:scale-[1.03] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
       style={{ background: 'rgba(255,255,255,0.04)' }}
     >
+      {/* Nút xóa — hover mới hiện, stopPropagation chặn click lan thành play */}
+      {onDelete && (
+        <button
+          type="button"
+          aria-label={`Xóa bài hát ${title}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(song);
+          }}
+          disabled={deleting}
+          className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-black/50 text-gray-300
+                     opacity-0 group-hover:opacity-100 transition-opacity
+                     hover:text-red-400 hover:bg-black/70 disabled:opacity-50"
+        >
+          <Trash2 size={15} />
+        </button>
+      )}
+
       {/* Ảnh bìa */}
       <div className="relative aspect-square overflow-hidden">
         {imgUrl ? (
@@ -364,7 +391,7 @@ function SongCard({ song, onPlay }) {
           </span>
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -398,6 +425,8 @@ export default function UploadedPage({ onPlay }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  // Xóa bài — id bài đang xóa để disable nút (chống double-delete)
+  const [deletingId, setDeletingId] = useState(null);
 
   // Data
   const fetchSongs = useCallback(() => songService.getMyUploads(), []);
@@ -430,9 +459,23 @@ export default function UploadedPage({ onPlay }) {
       // Tự động ẩn success message sau 3s
       setTimeout(() => setUploadSuccess(false), 3000);
     } catch (err) {
-      setUploadError(err.message || 'Upload failed. Please try again.');
+      // Backend trả { message } (413/400/401...) — ưu tiên đọc trước
+      setUploadError(err.response?.data?.message || err.message || 'Upload failed. Please try again.');
     } finally {
       setUploading(false);
+    }
+  }, [refetch]);
+
+  const handleDelete = useCallback(async (song) => {
+    if (!window.confirm(`Xóa bài hát "${song.title}"?`)) return;
+    setDeletingId(song.id);
+    try {
+      await songService.deleteSong(song.id);
+      refetch();
+    } catch (err) {
+      setUploadError(err.response?.data?.message || 'Xóa bài hát thất bại');
+    } finally {
+      setDeletingId(null);
     }
   }, [refetch]);
 
@@ -494,7 +537,13 @@ export default function UploadedPage({ onPlay }) {
           <p className="text-gray-500 text-sm mb-4">{songs.length} songs</p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
             {songs.map((song) => (
-              <SongCard key={song.id} song={song} onPlay={onPlay} />
+              <SongCard
+                key={song.id}
+                song={song}
+                onPlay={onPlay}
+                onDelete={handleDelete}
+                deleting={deletingId === song.id}
+              />
             ))}
           </div>
         </>

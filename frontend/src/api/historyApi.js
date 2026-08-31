@@ -1,33 +1,13 @@
 /**
- * History API — Data Access Layer
+ * History API — Data Access Layer (REAL API)
  *
- * === HƯỚNG DẪN BẬT API THẬT ===
- * 1. Đổi MOCK = false bên dưới
- * 2. Bỏ comment dòng import client và phần real API trong mỗi hàm
- * 3. Xóa toàn bộ phần "Mock"
- * 4. Xóa file @/mock/history.js
- * 5. KHÔNG cần sửa file nào khác
+ * Backend trả { historyId, song: SongDto, playedAt } → map về shape FE
+ * { id, song, playedAt } qua toFeSong — nơi DUY NHẤT biết shape backend.
  */
 
-// ============================================================
-// Mock (xóa hết phần này khi bật real API)
-// ============================================================
-import { mockGetHistory, mockRecordPlay } from '@/mock/history';
-const MOCK = true;
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// Mock: luôn dùng userId = 1 (khi có backend thật, token sẽ xác định user)
-const MOCK_USER_ID = 1;
-// ============================================================
-
-// ============================================================
-// Real API (bỏ comment khi bật real API)
-// ============================================================
-// import client from './client';
-// ============================================================
+import client from './client';
+import { toFeSong } from './normalizers';
+import { getSessionUserId } from './session';
 
 // ============================================================
 // GET /api/v1/history — Lịch sử nghe — Vinh (RecentlyPlayedPage)
@@ -35,33 +15,23 @@ const MOCK_USER_ID = 1;
 // ============================================================
 
 export async function getHistory() {
-  // --- Mock: xóa block này ---
-  if (MOCK) {
-    await delay(200);
-    return mockGetHistory(MOCK_USER_ID);
-  }
-  // --- End mock ---
-
-  // TODO API: bỏ comment bên dưới
-  // const res = await client.get('/api/v1/history');
-  // return res.data;
+  const res = await client.get('/api/v1/history', { params: { page: 1, size: 50 } });
+  return res.data.data.map((h) => ({
+    id: h.historyId,
+    song: toFeSong(h.song),
+    playedAt: h.playedAt,
+  }));
 }
 
 // ============================================================
-// POST /api/v1/history — Ghi nhận lượt nghe — Vinh (RecentlyPlayedPage, khi phát nhạc)
+// POST /api/v1/history — Ghi nhận lượt nghe (khi phát nhạc)
 // Body: { songId }
 // Response: { success: true }
 // ============================================================
 
 export async function recordPlay(songId) {
-  // --- Mock: xóa block này ---
-  if (MOCK) {
-    await delay(100);
-    return mockRecordPlay(MOCK_USER_ID, songId);
-  }
-  // --- End mock ---
-
-  // TODO API: bỏ comment bên dưới
-  // const res = await client.post('/api/v1/history', { songId });
-  // return res.data;
+  // Chưa đăng nhập → bỏ qua im lặng, không gọi API chắc chắn 401
+  if (getSessionUserId() == null) return { success: true };
+  const res = await client.post('/api/v1/history', { songId });
+  return res.data;
 }

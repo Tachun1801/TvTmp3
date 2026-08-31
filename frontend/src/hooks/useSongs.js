@@ -40,5 +40,6 @@ export function useSongs(fetchFn) {
     fetch();
   }, [fetch]);
 
-  return { data, loading, error };
+  // refetch dùng sau khi upload/xóa bài (UploadedPage)
+  return { data, loading, error, refetch: fetch };
 }

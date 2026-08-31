@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
@@ -72,6 +73,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNoResource(NoResourceFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("NOT_FOUND", "Endpoint không tồn tại: " + e.getResourcePath()));
+    }
+
+    /**
+     * File upload vượt giới hạn cấu hình multipart (20MB file / 25MB request).
+     * Trước đây rơi vào handleUnexpected → 500; giờ trả 413 đúng ngữ nghĩa
+     * để frontend hiển thị thông báo rõ ràng.
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUpload(MaxUploadSizeExceededException e) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(new ErrorResponse("FILE_TOO_LARGE", "File vượt quá giới hạn 20MB"));
     }
 
     // ============================================================

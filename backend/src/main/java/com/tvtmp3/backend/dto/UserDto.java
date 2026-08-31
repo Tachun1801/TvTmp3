@@ -1,5 +1,6 @@
 package com.tvtmp3.backend.dto;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 import com.tvtmp3.backend.entity.User;
@@ -17,7 +18,8 @@ public record UserDto(
         Long userId,
         String email,
         String fullName,
-        LocalDate birth
+        LocalDate birth,
+        Instant createdAt   // users.created_at — FE hiển thị "Member since" ở ProfilePage
 ) {
 
     /** Chuyển entity -> DTO. Dùng một nơi duy nhất để map khớp nhau toàn app. */
@@ -26,7 +28,8 @@ public record UserDto(
                 user.getUserId(),
                 user.getEmail(),
                 user.getFullName(),
-                user.getBirth()
+                user.getBirth(),
+                user.getCreateAt()
         );
     }
 }
